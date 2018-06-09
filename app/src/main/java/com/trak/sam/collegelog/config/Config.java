@@ -10,4 +10,5 @@ public class Config {
     public static final String DEPARTMENT_ENDPOINT ="department";
     public static final String ROLE_ENDPOINT = "role";
     public static final String SCHOOL_ENDPOINT = "school";
+    public static final String ANONYMOUS_ROLE = "Anonymous";
 }

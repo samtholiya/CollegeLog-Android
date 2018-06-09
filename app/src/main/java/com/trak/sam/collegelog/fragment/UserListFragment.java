@@ -12,7 +12,8 @@ import android.view.ViewGroup;
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.ViewAdapter.UserRecyclerViewAdapter;
 import com.trak.sam.collegelog.callback.BaseHttpCallback;
-import com.trak.sam.collegelog.callback.BaseItemClick;
+import com.trak.sam.collegelog.callback.FragmentChangeListener;
+import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.callback.OnUserListItemClick;
 import com.trak.sam.collegelog.model.User;
 import com.trak.sam.collegelog.service.UserService;
@@ -25,14 +26,14 @@ import java.util.Arrays;
  * <p/>
  * interface.
  */
-public class UserListFragment extends Fragment {
+public class UserListFragment extends Fragment implements OnAddButtonClick {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
     // TODO: Customize parameters
-    private int mColumnCount = 1;
-    private BaseItemClick<User> mListener;
+    private OnUserListItemClick mListener;
     private RecyclerView mRecyclerView;
+    private FragmentChangeListener mFragmentChangeListner;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -71,8 +72,10 @@ public class UserListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mListener = (BaseItemClick<User>) context;
-
+        if (context instanceof OnUserListItemClick)
+            mListener = (OnUserListItemClick) context;
+        if (context instanceof FragmentChangeListener)
+            mFragmentChangeListner = (FragmentChangeListener) context;
     }
 
     @Override
@@ -86,6 +89,12 @@ public class UserListFragment extends Fragment {
         super.onDetach();
         mListener = null;
     }
+
+    @Override
+    public void OnAddButtonClick(View view) {
+        mFragmentChangeListner.replaceFragment(RegisterUserFragment.newInstance(), false);
+    }
+
 
     private class UserCallbackHandler implements BaseHttpCallback<User> {
 

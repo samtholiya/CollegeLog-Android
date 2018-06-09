@@ -19,18 +19,25 @@
             android:label="@string/app_name"
             android:noHistory="true"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".activity.StudentLayoutActivity"
             android:label="@string/title_activity_student_layout" />
         <activity
             android:name=".activity.AdminActivity"
-            android:label="@string/title_activity_admin"></activity>
+            android:label="@string/title_activity_admin" />
+        <activity
+            android:name=".activity.SplashActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:noHistory="true"
+            android:label="@string/app_name"
+            android:theme="@style/FullscreenTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

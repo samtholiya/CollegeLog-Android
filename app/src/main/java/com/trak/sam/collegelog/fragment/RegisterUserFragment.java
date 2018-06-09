@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -22,9 +23,10 @@ import com.trak.sam.collegelog.callback.DepartmentCallback;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.model.Department;
 import com.trak.sam.collegelog.model.Role;
+import com.trak.sam.collegelog.model.School;
 import com.trak.sam.collegelog.model.User;
-import com.trak.sam.collegelog.service.DepartmentService;
 import com.trak.sam.collegelog.service.RoleService;
+import com.trak.sam.collegelog.service.SchoolService;
 import com.trak.sam.collegelog.service.UserService;
 
 import java.util.ArrayList;
@@ -57,6 +59,7 @@ public class RegisterUserFragment extends Fragment {
     private EditText address;
     private EditText password;
     private EditText confirmPassword;
+    private AppCompatSpinner schools;
     private AppCompatSpinner dateOfBirth;
     private AppCompatSpinner role;
     private Button register;
@@ -66,6 +69,7 @@ public class RegisterUserFragment extends Fragment {
     private View mView;
     private FragmentChangeListener mListener;
     private ArrayList<Role> roleArrayList;
+    private ArrayList<School> mSchoolArrayList;
 
     public RegisterUserFragment() {
         // Required empty public constructor
@@ -112,6 +116,28 @@ public class RegisterUserFragment extends Fragment {
         role = mView.findViewById(R.id.input_role);
         address = mView.findViewById(R.id.input_address);
         confirmPassword = mView.findViewById(R.id.input_confirm_password);
+        schools = mView.findViewById(R.id.input_school);
+        schools.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                List<String> spinnerArray = new ArrayList<String>();
+                departmentArrayList = new ArrayList<>();
+                for (Department department : mSchoolArrayList.get(i).departments) {
+                    spinnerArray.add(department.name + department);
+                    departmentArrayList.add(department);
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                        getContext(), android.R.layout.simple_spinner_item, spinnerArray);
+
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                department.setAdapter(adapter);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
         date = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear,
@@ -203,7 +229,7 @@ public class RegisterUserFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        DepartmentService.getDepartments(new DepartmentCallbackHandler());
+        SchoolService.getSchools(new SchoolCallbackHandler());
         RoleService.getRoles(new RoleCallbackHandler());
     }
 
@@ -228,6 +254,34 @@ public class RegisterUserFragment extends Fragment {
 
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             role.setAdapter(adapter);
+        }
+
+        @Override
+        public void onFailed(Exception e) {
+
+        }
+    }
+
+    private class SchoolCallbackHandler implements BaseHttpCallback<School> {
+
+        @Override
+        public void onItemReceived(School item) {
+
+        }
+
+        @Override
+        public void onItemsReceived(School[] items) {
+            List<String> spinnerArray = new ArrayList<String>();
+            mSchoolArrayList = new ArrayList<School>();
+            for (School school : items) {
+                spinnerArray.add(school.name);
+                mSchoolArrayList.add(school);
+            }
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                    getContext(), android.R.layout.simple_spinner_item, spinnerArray);
+
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            schools.setAdapter(adapter);
         }
 
         @Override

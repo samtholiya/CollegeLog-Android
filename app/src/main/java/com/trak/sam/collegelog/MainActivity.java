@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
     }
 
     @Override
-    public void replaceFragment(Fragment fragment) {
+    public void replaceFragment(Fragment fragment, boolean showFab) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment, fragment, fragment.toString())

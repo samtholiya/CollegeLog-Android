@@ -4,4 +4,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="text_margin">16dp</dimen>
+    <dimen name="list_item_pad">5dp</dimen>
+    <dimen name="list_item_margin">5dp</dimen>
 </resources>

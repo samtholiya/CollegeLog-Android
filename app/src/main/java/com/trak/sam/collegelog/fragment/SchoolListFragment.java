@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.ViewAdapter.SchoolRecyclerViewAdapter;
 import com.trak.sam.collegelog.callback.BaseHttpCallback;
+import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.callback.OnSchoolListItemClick;
 import com.trak.sam.collegelog.model.School;
 import com.trak.sam.collegelog.service.SchoolService;
@@ -24,7 +25,7 @@ import java.util.Arrays;
  * <p/>
  * interface.
  */
-public class SchoolListFragment extends Fragment implements OnSchoolListItemClick {
+public class SchoolListFragment extends Fragment implements OnSchoolListItemClick, OnAddButtonClick {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -91,6 +92,11 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
     @Override
     public void onListItemClick(School item) {
+
+    }
+
+    @Override
+    public void OnAddButtonClick(View view) {
 
     }
 

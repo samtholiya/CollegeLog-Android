@@ -9,6 +9,7 @@ import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.config.Config;
 import com.trak.sam.collegelog.helper.BaseJsonResponseHandler;
 import com.trak.sam.collegelog.helper.UtilHelper;
+import com.trak.sam.collegelog.model.Role;
 import com.trak.sam.collegelog.model.User;
 
 import java.io.UnsupportedEncodingException;
@@ -54,11 +55,12 @@ public class UserService {
     }
 
 
-    public static void setCurrentUser(String username, String password) {
+    public static void setCurrentUser(String username, String password, String role) {
         SharedPreferences sharedPreferences = UtilHelper.getSharedPreferencesForUser(context);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("username", username);
         editor.putString("password", password);
+        editor.putString("role", role);
         editor.apply();
     }
 
@@ -67,6 +69,8 @@ public class UserService {
         User user = new User();
         user.userName = sharedPreferences.getString("username", Config.ANONYMOUS_USER);
         user.password = sharedPreferences.getString("password", Config.ANONYMOUS_PASSWORD);
+        user.role = new Role();
+        user.role.name = sharedPreferences.getString("role", Config.ANONYMOUS_ROLE);
         return user;
     }
 
@@ -82,7 +86,7 @@ public class UserService {
 
         @Override
         public void onItemReceived(User item) {
-            setCurrentUser(item.userName, this.password);
+            setCurrentUser(item.userName, this.password, item.role.name);
             this.userCallback.onItemReceived(item);
         }
 
