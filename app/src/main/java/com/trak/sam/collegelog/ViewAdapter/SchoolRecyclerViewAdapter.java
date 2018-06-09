@@ -1,4 +1,4 @@
-package com.trak.sam.collegelog.fragment;
+package com.trak.sam.collegelog.ViewAdapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.trak.sam.collegelog.R;
-import com.trak.sam.collegelog.callback.OnSchoolListItemClick;
+import com.trak.sam.collegelog.callback.BaseItemClick;
 import com.trak.sam.collegelog.model.School;
 
 import java.util.List;
@@ -18,9 +18,9 @@ import java.util.List;
 public class SchoolRecyclerViewAdapter extends RecyclerView.Adapter<SchoolRecyclerViewAdapter.ViewHolder> {
 
     private final List<School> mValues;
-    private final OnSchoolListItemClick mListener;
+    private final BaseItemClick<School> mListener;
 
-    public SchoolRecyclerViewAdapter(List<School> items, OnSchoolListItemClick listener) {
+    public SchoolRecyclerViewAdapter(List<School> items, BaseItemClick<School> listener) {
         mValues = items;
         mListener = listener;
     }
@@ -43,7 +43,7 @@ public class SchoolRecyclerViewAdapter extends RecyclerView.Adapter<SchoolRecycl
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
-                    mListener.onSchoolItemClicked(holder.mItem);
+                    mListener.onListItemClick(holder.mItem);
                 }
             }
         });

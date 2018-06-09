@@ -5,18 +5,14 @@ import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.trak.sam.collegelog.callback.UserCallback;
+import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.config.Config;
+import com.trak.sam.collegelog.helper.BaseJsonResponseHandler;
 import com.trak.sam.collegelog.helper.UtilHelper;
 import com.trak.sam.collegelog.model.User;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.UnsupportedEncodingException;
 
-import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
 import cz.msebera.android.httpclient.message.BasicHeader;
 import cz.msebera.android.httpclient.protocol.HTTP;
@@ -30,17 +26,28 @@ public class UserService {
         UserService.context = context;
     }
 
-    public static void login(String username, String password, final UserCallback callback) {
+    public static void login(String username, String password, BaseHttpCallback<User> callback) {
         client.setBasicAuth(username, password);
-        client.get(UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT), new UserRequestHandler(new UserCallbackHandler(callback, password)));
+        BaseHttpCallback<User> httpResponseHandler = new UserCallbackHandler(callback, password);
+        BaseJsonResponseHandler<User> jsonResponseHandler = new BaseJsonResponseHandler<>(httpResponseHandler, User.class, User[].class);
+        client.get(UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT), jsonResponseHandler);
     }
 
-    public static void register(User user, UserCallback userCallback) {
-        client.setBasicAuth(Config.ANONYMOUS_USER, Config.ANONYMOUS_PASSWORD);
+    public static void getUsersOfRole(String role, BaseHttpCallback<User> callback) {
+        User tempUser = getCurrentUser();
+        client.setBasicAuth(tempUser.userName, tempUser.password);
+        BaseJsonResponseHandler<User> jsonResponseHandler = new BaseJsonResponseHandler<>(callback, User.class, User[].class);
+        client.get(UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT + "/" + role), jsonResponseHandler);
+    }
+
+    public static void register(User user, BaseHttpCallback<User> userCallback) {
+        User tempUser = getCurrentUser();
+        client.setBasicAuth(tempUser.userName, tempUser.password);
         try {
             StringEntity stringEntity = new StringEntity(gson.toJson(user));
             stringEntity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-            client.post(null, UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT), stringEntity, "application/json", new UserRequestHandler(userCallback));
+            BaseJsonResponseHandler<User> jsonResponseHandler = new BaseJsonResponseHandler<>(userCallback, User.class, User[].class);
+            client.post(null, UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT), stringEntity, "application/json", jsonResponseHandler);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -63,65 +70,31 @@ public class UserService {
         return user;
     }
 
-    private static class UserCallbackHandler implements UserCallback {
+    private static class UserCallbackHandler implements BaseHttpCallback<User> {
 
-        private UserCallback userCallback;
+        private BaseHttpCallback<User> userCallback;
         private String password;
 
-        public UserCallbackHandler(UserCallback userCallback, String password) {
+        public UserCallbackHandler(BaseHttpCallback<User> userCallback, String password) {
             this.userCallback = userCallback;
             this.password = password;
         }
 
         @Override
-        public void onUserReceived(User user) {
-            setCurrentUser(user.userName, this.password);
-            this.userCallback.onUserReceived(user);
+        public void onItemReceived(User item) {
+            setCurrentUser(item.userName, this.password);
+            this.userCallback.onItemReceived(item);
         }
 
         @Override
-        public void onUsersReceived(User[] users) {
-            this.onUsersReceived(users);
+        public void onItemsReceived(User[] items) {
+            this.userCallback.onItemsReceived(items);
         }
 
         @Override
         public void onFailed(Exception e) {
             this.userCallback.onFailed(e);
         }
-    }
-
-    private static class UserRequestHandler extends JsonHttpResponseHandler {
-
-        private final UserCallback userCallback;
-        private Gson gson;
-
-        public UserRequestHandler(UserCallback userCallback) {
-            this.userCallback = userCallback;
-            gson = UtilHelper.getGsonInstance();
-        }
-
-        @Override
-        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-            User user = gson.fromJson(response.toString(), User.class);
-            this.userCallback.onUserReceived(user);
-        }
-
-        @Override
-        public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-            User[] users = gson.fromJson(response.toString(), User[].class);
-            this.userCallback.onUsersReceived(users);
-        }
-
-        @Override
-        public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-            this.userCallback.onFailed(new Exception("Status code %s"));
-        }
-
-        @Override
-        public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
-            this.userCallback.onFailed(new Exception("Status code %s"));
-        }
-
     }
 
 }

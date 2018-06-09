@@ -10,11 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.trak.sam.collegelog.R;
-import com.trak.sam.collegelog.ViewAdapter.SchoolRecyclerViewAdapter;
+import com.trak.sam.collegelog.ViewAdapter.UserRecyclerViewAdapter;
 import com.trak.sam.collegelog.callback.BaseHttpCallback;
-import com.trak.sam.collegelog.callback.OnSchoolListItemClick;
-import com.trak.sam.collegelog.model.School;
-import com.trak.sam.collegelog.service.SchoolService;
+import com.trak.sam.collegelog.callback.BaseItemClick;
+import com.trak.sam.collegelog.callback.OnUserListItemClick;
+import com.trak.sam.collegelog.model.User;
+import com.trak.sam.collegelog.service.UserService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,37 +25,38 @@ import java.util.Arrays;
  * <p/>
  * interface.
  */
-public class SchoolListFragment extends Fragment implements OnSchoolListItemClick {
+public class UserListFragment extends Fragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
-    private OnSchoolListItemClick mListener;
+    // TODO: Customize parameters
+    private int mColumnCount = 1;
+    private BaseItemClick<User> mListener;
     private RecyclerView mRecyclerView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public SchoolListFragment() {
+    public UserListFragment() {
     }
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static SchoolListFragment newInstance() {
-        SchoolListFragment fragment = new SchoolListFragment();
+    public static UserListFragment newInstance() {
+        UserListFragment fragment = new UserListFragment();
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_school_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_user_list, container, false);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -69,9 +71,14 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnSchoolListItemClick) {
-            mListener = (OnSchoolListItemClick) context;
-        }
+        mListener = (BaseItemClick<User>) context;
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        UserService.getUsersOfRole("all", new UserCallbackHandler());
     }
 
     @Override
@@ -80,32 +87,17 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
         mListener = null;
     }
 
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        SchoolService.getSchools(new SchoolCallbackHandler());
-    }
-
-
-    @Override
-    public void onListItemClick(School item) {
-
-    }
-
-    private class SchoolCallbackHandler implements BaseHttpCallback<School> {
-
+    private class UserCallbackHandler implements BaseHttpCallback<User> {
 
         @Override
-        public void onItemReceived(School item) {
+        public void onItemReceived(User item) {
 
         }
 
         @Override
-        public void onItemsReceived(School[] items) {
-            ArrayList<School> schoolArrayList = new ArrayList<>(Arrays.asList(items));
-            mRecyclerView.setAdapter(new SchoolRecyclerViewAdapter(schoolArrayList, mListener));
+        public void onItemsReceived(User[] items) {
+            ArrayList<User> userArrayList = new ArrayList<>(Arrays.asList(items));
+            mRecyclerView.setAdapter(new UserRecyclerViewAdapter(userArrayList, mListener));
         }
 
         @Override

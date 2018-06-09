@@ -17,10 +17,9 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 
 import com.trak.sam.collegelog.R;
+import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.callback.DepartmentCallback;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
-import com.trak.sam.collegelog.callback.RoleCallback;
-import com.trak.sam.collegelog.callback.UserCallback;
 import com.trak.sam.collegelog.model.Department;
 import com.trak.sam.collegelog.model.Role;
 import com.trak.sam.collegelog.model.User;
@@ -164,14 +163,14 @@ public class RegisterUserFragment extends Fragment {
                     user.role = roleArrayList.get(role.getSelectedItemPosition());
 
                     user.departments = departments;
-                    UserService.register(user, new UserCallback() {
+                    UserService.register(user, new BaseHttpCallback<User>() {
                         @Override
-                        public void onUserReceived(User user) {
-                            getActivity().onBackPressed();
+                        public void onItemReceived(User item) {
+
                         }
 
                         @Override
-                        public void onUsersReceived(User[] users) {
+                        public void onItemsReceived(User[] items) {
 
                         }
 
@@ -208,18 +207,19 @@ public class RegisterUserFragment extends Fragment {
         RoleService.getRoles(new RoleCallbackHandler());
     }
 
-    private class RoleCallbackHandler implements RoleCallback {
+    private class RoleCallbackHandler implements BaseHttpCallback<Role> {
+
 
         @Override
-        public void onRoleReceived(Role role) {
+        public void onItemReceived(Role item) {
 
         }
 
         @Override
-        public void onRolesReceived(Role[] roles) {
+        public void onItemsReceived(Role[] items) {
             List<String> spinnerArray = new ArrayList<String>();
             roleArrayList = new ArrayList<Role>();
-            for (Role role : roles) {
+            for (Role role : items) {
                 spinnerArray.add(role.name);
                 roleArrayList.add(role);
             }

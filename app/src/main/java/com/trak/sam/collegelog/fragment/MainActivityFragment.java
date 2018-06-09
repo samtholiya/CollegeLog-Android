@@ -13,15 +13,15 @@ import android.widget.Toast;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.activity.AdminActivity;
+import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
-import com.trak.sam.collegelog.callback.UserCallback;
 import com.trak.sam.collegelog.model.User;
 import com.trak.sam.collegelog.service.UserService;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment implements UserCallback{
+public class MainActivityFragment extends Fragment implements BaseHttpCallback<User>{
 
     private View mView;
 
@@ -69,16 +69,17 @@ public class MainActivityFragment extends Fragment implements UserCallback{
         }
     }
 
+
     @Override
-    public void onUserReceived(User user) {
-        if(user.role.name.equals("Admin")) {
+    public void onItemReceived(User item) {
+        if(item.role.name.equals("Admin")) {
             Intent intent = new Intent(getActivity(), AdminActivity.class);
             startActivity(intent);
         }
     }
 
     @Override
-    public void onUsersReceived(User[] users) {
+    public void onItemsReceived(User[] items) {
 
     }
 

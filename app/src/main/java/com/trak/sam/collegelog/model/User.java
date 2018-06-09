@@ -9,7 +9,6 @@ package com.trak.sam.collegelog.model;
 import java.util.Date;
 
 /**
- *
  * @author shubh
  */
 public class User {
@@ -27,5 +26,9 @@ public class User {
     public boolean isActive;
     public Department[] departments;
     public Role role;
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 }
 
