@@ -34,11 +34,28 @@ public class UserService {
         client.get(UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT), jsonResponseHandler);
     }
 
-    public static void getUsersOfRole(String role, BaseHttpCallback<User> callback) {
+    public static void getUsersOfRole(String role, long offset, long limit, BaseHttpCallback<User> callback) {
         User tempUser = getCurrentUser();
         client.setBasicAuth(tempUser.userName, tempUser.password);
         BaseJsonResponseHandler<User> jsonResponseHandler = new BaseJsonResponseHandler<>(callback, User.class, User[].class);
-        client.get(UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT + "/" + role), jsonResponseHandler);
+        //Used stringBuilder for better performance
+        StringBuilder stringBuilder = new StringBuilder(Config.USER_ENDPOINT);
+        String endpoint = stringBuilder.append("/")
+                .append(Config.LIST_ENDPOINT)
+                .append("?")
+                .append(Config.UserFilter.ROLE_TYPE)
+                .append("=")
+                .append(role)
+                .append("&")
+                .append(Config.UserFilter.LIMIT)
+                .append("=")
+                .append(limit)
+                .append("&")
+                .append(Config.UserFilter.OFFSET)
+                .append("=")
+                .append(offset)
+                .toString();
+        client.get(UtilHelper.getAbsoluteUrl(endpoint), jsonResponseHandler);
     }
 
     public static void register(User user, BaseHttpCallback<User> userCallback) {

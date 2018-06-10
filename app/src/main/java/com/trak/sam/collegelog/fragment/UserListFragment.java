@@ -81,7 +81,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     @Override
     public void onResume() {
         super.onResume();
-        UserService.getUsersOfRole("all", new UserCallbackHandler());
+        UserService.getUsersOfRole("all", 0, 10, new UserCallbackHandler());
     }
 
     @Override
@@ -92,7 +92,8 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
 
     @Override
     public void OnAddButtonClick(View view) {
-        mFragmentChangeListner.replaceFragment(RegisterUserFragment.newInstance(), false);
+        if (mFragmentChangeListner != null)
+            mFragmentChangeListner.replaceFragment(RegisterUserFragment.newInstance(), false);
     }
 
 
@@ -106,6 +107,19 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
         @Override
         public void onItemsReceived(User[] items) {
             ArrayList<User> userArrayList = new ArrayList<>(Arrays.asList(items));
+            mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+
+                }
+
+                @Override
+                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+
+                }
+            });
             mRecyclerView.setAdapter(new UserRecyclerViewAdapter(userArrayList, mListener));
         }
 
