@@ -32,10 +32,10 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
     private RecyclerView.LayoutManager mLayoutManager;
     private RecyclerView.Adapter mAdapter;
     private ArrayList<T> mArrayList;
-    private ArrayList<ArrayList<T>> mPageList;
+    private ArrayList<ArrayList<T>> mPageList = new ArrayList<>();
     private PageOperator mPageOperator;
-    private boolean mLoadingBellow;
-    private boolean mLoadingAbove;
+    private boolean mLoadingBellow = false;
+    private boolean mLoadingAbove = false;
 
     public BaseOnScrollListener(LinearLayoutManager layoutManager) {
         this.mLayoutManager = layoutManager;
@@ -70,11 +70,14 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
     @Override
     public void onScrolled(RecyclerView view, int dx, int dy) {
         super.onScrolled(view, dx, dy);
+        Log.d("sam-onScrolled","came here");
         int lastVisibleItemPosition = 0;
+        if(mPageOperator==null)
+            Log.d("sam-there","df");
         int totalItemCount = mLayoutManager.getItemCount();
         Log.d("scroll item count", String.valueOf(totalItemCount));
         int firstVisibleItemPosition = 0;
-        if (!isLoadingBellow() && totalItemCount == 0) {
+        if (!mLoadingBellow && totalItemCount == 0) {
             mPageOperator.loadDataBellow(0, 30, view);
             return;
         }
@@ -91,14 +94,23 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
         }
 
         mVisibleThreshold = (lastVisibleItemPosition - firstVisibleItemPosition);
+        mLimit = mVisibleThreshold;
 
-
-        if (dy > 0 && ((totalItemCount - lastVisibleItemPosition) < mVisibleThreshold) && !mPageOperator.isLoadingBellow()) {
-            Log.d("sam-scroll", "bellow");
+        if(mVisibleThreshold == 0) {
+            mLimit = 25;
         }
 
-        if (dy < 0 && (firstVisibleItemPosition < mVisibleThreshold) && !mPageOperator.isLoadingAbove()) {
+        Log.d("sam-scroll", String.valueOf((totalItemCount - lastVisibleItemPosition) < mVisibleThreshold));
+
+
+        if (dy > 0 && ((totalItemCount - lastVisibleItemPosition) < mVisibleThreshold) && !mLoadingBellow) {
+            Log.d("sam-scroll", "bellow");
+            loadPageBellow(view);
+        }
+
+        if (dy < 0 && (firstVisibleItemPosition < mVisibleThreshold) && !mLoadingAbove) {
             Log.d("sam-scroll", "above");
+            loadPageAbove(view);
         }
 
 
@@ -182,11 +194,15 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
     }
 
     public void addPageBellow(ArrayList<T> items) {
+        if(mPageOperator == null) {
+            Log.d("addPage","null");
+        }
         mPageList.add(items);
         int lastPosition = mArrayList.size() - 1;
         mArrayList.addAll(items);
         mAdapter.notifyItemRangeInserted(lastPosition, items.size());
         mOffset = mOffset + items.size();
+
         mLoadingBellow = false;
     }
 
@@ -215,6 +231,10 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
 
     public void addPageOperator(PageOperator pageOperator) {
         mPageOperator = pageOperator;
+        if(mPageOperator!=null){
+            Log.d("base","nope");
+        }
+        mPageOperator.loadDataBellow(0, 30, null);
     }
 
     public static interface PageOperator {

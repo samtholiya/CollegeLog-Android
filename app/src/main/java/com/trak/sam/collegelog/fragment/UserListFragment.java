@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.callback.OnUserListItemClick;
+import com.trak.sam.collegelog.helper.BaseOnScrollListener;
 import com.trak.sam.collegelog.model.User;
 import com.trak.sam.collegelog.service.UserService;
 
@@ -34,6 +36,10 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     private OnUserListItemClick mListener;
     private RecyclerView mRecyclerView;
     private FragmentChangeListener mFragmentChangeListner;
+    private LinearLayoutManager mLinearLayoutManager;
+    private ArrayList<User> mUserArrayList;
+    private BaseOnScrollListener.PageOperator mPageOperator;
+    private BaseOnScrollListener<User> mBaseOnScrollListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -63,7 +69,8 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             mRecyclerView = (RecyclerView) view;
-            mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+            mLinearLayoutManager = new LinearLayoutManager(context);
+            mRecyclerView.setLayoutManager(mLinearLayoutManager);
         }
         return view;
     }
@@ -81,7 +88,16 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     @Override
     public void onResume() {
         super.onResume();
-        UserService.getUsersOfRole("all", 0, 10, new UserCallbackHandler());
+        mUserArrayList = new ArrayList<>();
+        UserRecyclerViewAdapter userRecyclerViewAdapter = new UserRecyclerViewAdapter(mUserArrayList, mListener);
+        mBaseOnScrollListener = new BaseOnScrollListener<User>(mLinearLayoutManager);
+        mBaseOnScrollListener.setAdapter(userRecyclerViewAdapter);
+        mBaseOnScrollListener.setArrayList(mUserArrayList);
+        mPageOperator = new PageOperatorImpl();
+        mBaseOnScrollListener.addPageOperator(mPageOperator);
+        mRecyclerView.addOnScrollListener(new BaseOnScrollListener(mLinearLayoutManager));
+        mRecyclerView.setAdapter(userRecyclerViewAdapter);
+
     }
 
     @Override
@@ -96,8 +112,29 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
             mFragmentChangeListner.replaceFragment(RegisterUserFragment.newInstance(), false);
     }
 
+    private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {
+
+        @Override
+        public void loadDataBellow(long offset, long limit, RecyclerView view) {
+            Log.d("loadBellow-offset", String.valueOf(offset));
+            Log.d("loadBellow-limit", String.valueOf(limit));
+            UserService.getUsersOfRole("all", offset, limit, new UserCallbackHandler(true));
+        }
+
+        @Override
+        public void loadDataAbove(long offset, long limit, RecyclerView view) {
+            Log.d("loadAbove-offset", String.valueOf(offset));
+            Log.d("loadAbove-limit", String.valueOf(limit));
+        }
+    }
 
     private class UserCallbackHandler implements BaseHttpCallback<User> {
+
+        private final boolean mIsBellow;
+
+        public UserCallbackHandler(boolean isBellow){
+            mIsBellow = isBellow;
+        }
 
         @Override
         public void onItemReceived(User item) {
@@ -107,20 +144,11 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
         @Override
         public void onItemsReceived(User[] items) {
             ArrayList<User> userArrayList = new ArrayList<>(Arrays.asList(items));
-            mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                    super.onScrollStateChanged(recyclerView, newState);
-
-                }
-
-                @Override
-                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                    super.onScrolled(recyclerView, dx, dy);
-
-                }
-            });
-            mRecyclerView.setAdapter(new UserRecyclerViewAdapter(userArrayList, mListener));
+            if(mIsBellow) {
+                mBaseOnScrollListener.addPageBellow(userArrayList);
+            } else {
+                mBaseOnScrollListener.addPageAbove(userArrayList);
+            }
         }
 
         @Override

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +13,10 @@ import android.view.ViewGroup;
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.ViewAdapter.SchoolRecyclerViewAdapter;
 import com.trak.sam.collegelog.callback.BaseHttpCallback;
+import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.callback.OnSchoolListItemClick;
+import com.trak.sam.collegelog.helper.BaseOnScrollListener;
 import com.trak.sam.collegelog.model.School;
 import com.trak.sam.collegelog.service.SchoolService;
 
@@ -31,6 +34,11 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     private static final String ARG_COLUMN_COUNT = "column-count";
     private OnSchoolListItemClick mListener;
     private RecyclerView mRecyclerView;
+    private FragmentChangeListener mFragmentChangeListner;
+    private LinearLayoutManager mLinearLayoutManager;
+    private ArrayList<School> mSchoolArrayList;
+    private BaseOnScrollListener.PageOperator mPageOperator;
+    private BaseOnScrollListener<School> mBaseOnScrollListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -61,7 +69,8 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             mRecyclerView = (RecyclerView) view;
-            mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+            mLinearLayoutManager = new LinearLayoutManager(context);
+            mRecyclerView.setLayoutManager(mLinearLayoutManager);
         }
         return view;
     }
@@ -86,8 +95,36 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     @Override
     public void onResume() {
         super.onResume();
-        SchoolService.getSchools(new SchoolCallbackHandler());
+
+        mSchoolArrayList = new ArrayList<>();
+        mBaseOnScrollListener = new BaseOnScrollListener<School>(mLinearLayoutManager);
+        mPageOperator = new PageOperatorImpl();
+
+        SchoolRecyclerViewAdapter schoolRecyclerViewAdapter = new SchoolRecyclerViewAdapter(mSchoolArrayList, mListener);
+        mRecyclerView.setAdapter(schoolRecyclerViewAdapter);
+        mBaseOnScrollListener.addPageOperator(mPageOperator);
+        mBaseOnScrollListener.setAdapter(schoolRecyclerViewAdapter);
+        mBaseOnScrollListener.setArrayList(mSchoolArrayList);
+        mRecyclerView.addOnScrollListener(new BaseOnScrollListener(mLinearLayoutManager));
+        mRecyclerView.setAdapter(schoolRecyclerViewAdapter);
     }
+
+    private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {
+
+        @Override
+        public void loadDataBellow(long offset, long limit, RecyclerView view) {
+            Log.d("loadBellow-offset", String.valueOf(offset));
+            Log.d("loadBellow-limit", String.valueOf(limit));
+            SchoolService.getSchools(offset, limit, new SchoolCallbackHandler(true));
+        }
+
+        @Override
+        public void loadDataAbove(long offset, long limit, RecyclerView view) {
+            Log.d("loadAbove-offset", String.valueOf(offset));
+            Log.d("loadAbove-limit", String.valueOf(limit));
+        }
+    }
+
 
 
     @Override
@@ -102,6 +139,11 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
     private class SchoolCallbackHandler implements BaseHttpCallback<School> {
 
+        private final boolean mIsBellow;
+
+        public SchoolCallbackHandler(boolean isBellow) {
+            mIsBellow = isBellow;
+        }
 
         @Override
         public void onItemReceived(School item) {
@@ -111,7 +153,11 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
         @Override
         public void onItemsReceived(School[] items) {
             ArrayList<School> schoolArrayList = new ArrayList<>(Arrays.asList(items));
-            mRecyclerView.setAdapter(new SchoolRecyclerViewAdapter(schoolArrayList, mListener));
+            if(mIsBellow){
+                mBaseOnScrollListener.addPageBellow(schoolArrayList);
+            } else {
+                mBaseOnScrollListener.addPageAbove(schoolArrayList);
+            }
         }
 
         @Override
