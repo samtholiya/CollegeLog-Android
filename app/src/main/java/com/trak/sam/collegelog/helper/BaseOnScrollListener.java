@@ -242,4 +242,5 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
 
         void loadDataAbove(long offset, long limit, RecyclerView view);
     }
+
 }

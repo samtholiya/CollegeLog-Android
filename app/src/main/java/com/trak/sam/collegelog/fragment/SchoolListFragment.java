@@ -11,11 +11,11 @@ import android.view.ViewGroup;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.ViewAdapter.SchoolRecyclerViewAdapter;
-import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.callback.OnSchoolListItemClick;
 import com.trak.sam.collegelog.helper.BaseOnScrollListener;
+import com.trak.sam.collegelog.helper.HttpPageLoaderHelper;
 import com.trak.sam.collegelog.model.School;
 import com.trak.sam.collegelog.service.SchoolService;
 
@@ -87,7 +87,6 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     }
 
 
-
     @Override
     public void onResume() {
         super.onResume();
@@ -108,21 +107,21 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {
 
         private BaseOnScrollListener<School> mSchoolBaseOnScrollListener;
+
         private PageOperatorImpl(BaseOnScrollListener<School> schoolBaseOnScrollListener) {
             mSchoolBaseOnScrollListener = schoolBaseOnScrollListener;
         }
 
         @Override
         public void loadDataBellow(long offset, long limit, RecyclerView view) {
-            SchoolService.getSchools(offset, limit, new SchoolCallbackHandler(true, mSchoolBaseOnScrollListener));
+            SchoolService.getSchools(offset, limit, new HttpPageLoaderHelper<>(true, mSchoolBaseOnScrollListener));
         }
 
         @Override
         public void loadDataAbove(long offset, long limit, RecyclerView view) {
-            SchoolService.getSchools(offset, limit, new SchoolCallbackHandler(false, mSchoolBaseOnScrollListener));
+            SchoolService.getSchools(offset, limit, new HttpPageLoaderHelper<>(false, mSchoolBaseOnScrollListener));
         }
     }
-
 
 
     @Override
@@ -133,35 +132,5 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     @Override
     public void OnAddButtonClick(View view) {
 
-    }
-
-    private class SchoolCallbackHandler implements BaseHttpCallback<School> {
-
-        private boolean mIsBellow;
-        private BaseOnScrollListener<School> mBaseOnScrollListener;
-
-        private SchoolCallbackHandler(boolean isBellow, BaseOnScrollListener<School> baseOnScrollListener) {
-            mIsBellow = isBellow;
-            mBaseOnScrollListener = baseOnScrollListener;
-        }
-
-        @Override
-        public void onItemReceived(School item) {
-
-        }
-
-        @Override
-        public void onItemsReceived(School[] items) {
-            if(mIsBellow){
-                mBaseOnScrollListener.addPageBellow(items);
-            } else {
-                mBaseOnScrollListener.addPageAbove(items);
-            }
-        }
-
-        @Override
-        public void onFailed(Exception e) {
-
-        }
     }
 }

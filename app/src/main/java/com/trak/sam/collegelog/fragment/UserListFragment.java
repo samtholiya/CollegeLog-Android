@@ -5,23 +5,21 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.ViewAdapter.UserRecyclerViewAdapter;
-import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.callback.OnUserListItemClick;
 import com.trak.sam.collegelog.helper.BaseOnScrollListener;
+import com.trak.sam.collegelog.helper.HttpPageLoaderHelper;
 import com.trak.sam.collegelog.model.User;
 import com.trak.sam.collegelog.service.UserService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * A fragment representing a list of Items.
@@ -35,11 +33,10 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     // TODO: Customize parameters
     private OnUserListItemClick mListener;
     private RecyclerView mRecyclerView;
-    private FragmentChangeListener mFragmentChangeListner;
+    private FragmentChangeListener mFragmentChangeListener;
     private LinearLayoutManager mLinearLayoutManager;
     private ArrayList<User> mUserArrayList;
     private BaseOnScrollListener.PageOperator mPageOperator;
-    private BaseOnScrollListener<User> mBaseOnScrollListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -51,8 +48,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
     public static UserListFragment newInstance() {
-        UserListFragment fragment = new UserListFragment();
-        return fragment;
+        return new UserListFragment();
     }
 
     @Override
@@ -75,27 +71,30 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
         return view;
     }
 
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnUserListItemClick)
             mListener = (OnUserListItemClick) context;
         if (context instanceof FragmentChangeListener)
-            mFragmentChangeListner = (FragmentChangeListener) context;
+            mFragmentChangeListener = (FragmentChangeListener) context;
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
         mUserArrayList = new ArrayList<>();
+        BaseOnScrollListener<User> baseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
+        mPageOperator = new PageOperatorImpl(baseOnScrollListener);
+
         UserRecyclerViewAdapter userRecyclerViewAdapter = new UserRecyclerViewAdapter(mUserArrayList, mListener);
-        mBaseOnScrollListener = new BaseOnScrollListener<User>(mLinearLayoutManager);
-        mBaseOnScrollListener.setAdapter(userRecyclerViewAdapter);
-        mBaseOnScrollListener.setArrayList(mUserArrayList);
-        mPageOperator = new PageOperatorImpl();
-        mBaseOnScrollListener.addPageOperator(mPageOperator);
-        mRecyclerView.addOnScrollListener(new BaseOnScrollListener(mLinearLayoutManager));
+        mRecyclerView.setAdapter(userRecyclerViewAdapter);
+        baseOnScrollListener.addPageOperator(mPageOperator);
+        baseOnScrollListener.setAdapter(userRecyclerViewAdapter);
+        baseOnScrollListener.setArrayList(mUserArrayList);
+
+        mRecyclerView.addOnScrollListener(baseOnScrollListener);
         mRecyclerView.setAdapter(userRecyclerViewAdapter);
 
     }
@@ -108,52 +107,27 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
 
     @Override
     public void OnAddButtonClick(View view) {
-        if (mFragmentChangeListner != null)
-            mFragmentChangeListner.replaceFragment(RegisterUserFragment.newInstance(), false);
+        if (mFragmentChangeListener != null)
+            mFragmentChangeListener.replaceFragment(RegisterUserFragment.newInstance(), false);
     }
 
     private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {
 
+        private BaseOnScrollListener<User> mBaseOnScrollListener;
+
+        private PageOperatorImpl(BaseOnScrollListener<User> baseOnScrollListener) {
+            mBaseOnScrollListener = baseOnScrollListener;
+        }
+
         @Override
         public void loadDataBellow(long offset, long limit, RecyclerView view) {
-            Log.d("loadBellow-offset", String.valueOf(offset));
-            Log.d("loadBellow-limit", String.valueOf(limit));
-            UserService.getUsersOfRole("all", offset, limit, new UserCallbackHandler(true));
+            UserService.getUsersOfRole("all", offset, limit, new HttpPageLoaderHelper<>(true, mBaseOnScrollListener));
         }
 
         @Override
         public void loadDataAbove(long offset, long limit, RecyclerView view) {
-            Log.d("loadAbove-offset", String.valueOf(offset));
-            Log.d("loadAbove-limit", String.valueOf(limit));
+            UserService.getUsersOfRole("all", offset, limit, new HttpPageLoaderHelper<>(false, mBaseOnScrollListener));
         }
     }
 
-    private class UserCallbackHandler implements BaseHttpCallback<User> {
-
-        private final boolean mIsBellow;
-
-        public UserCallbackHandler(boolean isBellow){
-            mIsBellow = isBellow;
-        }
-
-        @Override
-        public void onItemReceived(User item) {
-
-        }
-
-        @Override
-        public void onItemsReceived(User[] items) {
-            ArrayList<User> userArrayList = new ArrayList<>(Arrays.asList(items));
-            if(mIsBellow) {
-                mBaseOnScrollListener.addPageBellow(userArrayList);
-            } else {
-                mBaseOnScrollListener.addPageAbove(userArrayList);
-            }
-        }
-
-        @Override
-        public void onFailed(Exception e) {
-
-        }
-    }
 }
