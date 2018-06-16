@@ -4,7 +4,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +13,7 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
     // before mLoading more.
     private int mVisibleThreshold = 5;
 
+    private int mArraySize = 0;
     // The current offset index of data you have loaded
     private int mCurrentPage = 0;
 
@@ -21,6 +21,7 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
     private int mPreviousTotalItemCount = 0;
 
     private long mOffset = 0;
+    private long mPreviousOffset = 0;
 
     private long mLimit = 0;
     // True if we are still waiting for the last set of data to load.
@@ -39,7 +40,6 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
 
     public BaseOnScrollListener(LinearLayoutManager layoutManager) {
         this.mLayoutManager = layoutManager;
-
     }
 
     public BaseOnScrollListener(GridLayoutManager layoutManager) {
@@ -52,7 +52,7 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
         mVisibleThreshold = mVisibleThreshold * layoutManager.getSpanCount();
     }
 
-    public int getLastVisibleItem(int[] lastVisibleItemPositions) {
+    private int getLastVisibleItem(int[] lastVisibleItemPositions) {
         int maxSize = 0;
         for (int i = 0; i < lastVisibleItemPositions.length; i++) {
             if (i == 0) {
@@ -64,90 +64,71 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
         return maxSize;
     }
 
+    private int getFirstVisibleItem(int[] firstVisibleItemPositions) {
+        int minSize = 0;
+        for (int i = 0; i < firstVisibleItemPositions.length; i++) {
+            if (i == 0) {
+                minSize = firstVisibleItemPositions[i];
+            } else if (firstVisibleItemPositions[i] < minSize) {
+                minSize = firstVisibleItemPositions[i];
+            }
+        }
+        return minSize;
+
+    }
+
     // This happens many times a second during a scroll, so be wary of the code you place here.
     // We are given a few useful parameters to help us work out if we need to load some more data,
     // but first we check if we are waiting for the previous load to finish.
     @Override
     public void onScrolled(RecyclerView view, int dx, int dy) {
         super.onScrolled(view, dx, dy);
-        Log.d("sam-onScrolled","came here");
-        int lastVisibleItemPosition = 0;
-        if(mPageOperator==null)
-            Log.d("sam-there","df");
+        int lastVisibleItemPosition;
         int totalItemCount = mLayoutManager.getItemCount();
-        Log.d("scroll item count", String.valueOf(totalItemCount));
-        int firstVisibleItemPosition = 0;
+        int firstVisibleItemPosition;
+
         if (!mLoadingBellow && totalItemCount == 0) {
-            mPageOperator.loadDataBellow(0, 30, view);
+            mPageOperator.loadDataBellow(0, 20, view);
             return;
         }
-        if (mLayoutManager instanceof StaggeredGridLayoutManager) {
-            int[] lastVisibleItemPositions = ((StaggeredGridLayoutManager) mLayoutManager).findLastVisibleItemPositions(null);
-            // get maximum element within the list
-            lastVisibleItemPosition = getLastVisibleItem(lastVisibleItemPositions);
-        } else if (mLayoutManager instanceof GridLayoutManager) {
-            lastVisibleItemPosition = ((GridLayoutManager) mLayoutManager).findLastVisibleItemPosition();
-            firstVisibleItemPosition = ((GridLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
-        } else if (mLayoutManager instanceof LinearLayoutManager) {
-            lastVisibleItemPosition = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
-            firstVisibleItemPosition = ((LinearLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
-        }
+
+        firstVisibleItemPosition = getFirstItemPosition();
+        lastVisibleItemPosition = getLastItemPosition();
 
         mVisibleThreshold = (lastVisibleItemPosition - firstVisibleItemPosition);
         mLimit = mVisibleThreshold;
 
-        if(mVisibleThreshold == 0) {
+        if (mVisibleThreshold == 0) {
             mLimit = 25;
         }
 
-        Log.d("sam-scroll", String.valueOf((totalItemCount - lastVisibleItemPosition) < mVisibleThreshold));
-
-
         if (dy > 0 && ((totalItemCount - lastVisibleItemPosition) < mVisibleThreshold) && !mLoadingBellow) {
-            Log.d("sam-scroll", "bellow");
             loadPageBellow(view);
         }
 
         if (dy < 0 && (firstVisibleItemPosition < mVisibleThreshold) && !mLoadingAbove) {
-            Log.d("sam-scroll", "above");
             loadPageAbove(view);
         }
-
-
-        // If it’s still mLoading, we check to see if the dataset count has
-        // changed, if so we conclude it has finished mLoading and update the current page
-        // number and total item count.
-        /*
-        if (mLoading && (totalItemCount > mPreviousTotalItemCount)) {
-            mLoading = false;
-            mPreviousTotalItemCount = totalItemCount;
-        }
-        */
-
-        // If it isn’t currently mLoading, we check to see if we have breached
-        // the mVisibleThreshold and need to reload more data.
-        // If we do need to reload some more data, we execute onLoadMore to fetch the data.
-        // threshold should reflect how many total columns there are too
-        /*if (!isLoadingBellow() && (lastVisibleItemPosition + mVisibleThreshold) > totalItemCount
-                && view.getAdapter().getItemCount() > mVisibleThreshold) {
-            // This condition will useful when recyclerview has less than mVisibleThreshold items
-            mCurrentPage++;
-            onLoadMoreBellow(mCurrentPage, totalItemCount, view);
-            // mLoading = true;
-        }*/
     }
 
     private void loadPageBellow(RecyclerView view) {
+
         mLoadingBellow = true;
         mPageOperator.loadDataBellow(mOffset, mLimit, view);
     }
 
     private void loadPageAbove(RecyclerView view) {
-        if(mOffset == mArrayList.size()) {
+        if (mPreviousOffset <= 0) {
             return;
         }
         mLoadingAbove = true;
-        mPageOperator.loadDataAbove((mOffset - mArrayList.size()), mLimit, view);
+        long temp = mPreviousOffset - mVisibleThreshold;
+        long tempLimit = mLimit;
+        if (temp < 0) {
+            tempLimit = mPreviousOffset;
+            temp = 0;
+        }
+        mPageOperator.loadDataAbove(temp, tempLimit, view);
     }
 
     // Call whenever performing new searches
@@ -157,35 +138,58 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
         // this.mLoading = true;
     }
 
-    // Defines the process for actually mLoading more data based on page
-//    public abstract void onLoadMoreBellow(int page, int totalItemsCount, RecyclerView view);
-
-    public boolean isLoadingBellow() {
-        return false;
-    }
-
-//    public abstract void onLoadMoreAbove(int page, int totalItemsCount, RecyclerView view);
-
-    public boolean isLoadingAbove() {
-        return false;
-    }
-
     private void removeFirstPage() {
-        if(mOffset == mArrayList.size()) {
-            return;
+        int firstVisibleItemPosition = getFirstItemPosition();
+        if (mArrayList.size() > (mVisibleThreshold * 3) && (mPageList.get(0).size() < firstVisibleItemPosition)) {
+            mPreviousOffset += mPageList.get(0).size();
+            mArrayList.removeAll(mPageList.get(0));
+            mAdapter.notifyItemRangeRemoved(0, mPageList.get(0).size());
+            mPageList.remove(0);
         }
-        mArrayList.removeAll(mPageList.get(0));
-        mAdapter.notifyItemRangeRemoved(0, mPageList.get(0).size());
-        mPageList.remove(0);
+    }
+
+    private int getFirstItemPosition() {
+        int firstVisibleItemPosition = 0;
+        if (mLayoutManager instanceof StaggeredGridLayoutManager) {
+            int[] firstVisibleItemPositions = ((StaggeredGridLayoutManager) mLayoutManager).findFirstVisibleItemPositions(null);
+            // get minimum element within the list
+            firstVisibleItemPosition = getFirstVisibleItem(firstVisibleItemPositions);
+        } else if (mLayoutManager instanceof GridLayoutManager) {
+            firstVisibleItemPosition = ((GridLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
+        } else if (mLayoutManager instanceof LinearLayoutManager) {
+            firstVisibleItemPosition = ((LinearLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
+        }
+
+        return firstVisibleItemPosition;
+    }
+
+    private int getLastItemPosition() {
+        int lastVisibleItemPosition = 0;
+
+        if (mLayoutManager instanceof StaggeredGridLayoutManager) {
+            int[] lastVisibleItemPositions = ((StaggeredGridLayoutManager) mLayoutManager).findLastVisibleItemPositions(null);
+            // get maximum element within the list
+            lastVisibleItemPosition = getLastVisibleItem(lastVisibleItemPositions);
+        } else if (mLayoutManager instanceof GridLayoutManager) {
+            lastVisibleItemPosition = ((GridLayoutManager) mLayoutManager).findLastVisibleItemPosition();
+        } else if (mLayoutManager instanceof LinearLayoutManager) {
+            lastVisibleItemPosition = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
+        }
+        return lastVisibleItemPosition;
     }
 
     private void removeLastPage() {
-        ArrayList<T> arrayList = mPageList.get(mPageList.size() - 1);
-        int previousTotal = mArrayList.size();
-        mArrayList.removeAll(arrayList);
-        mAdapter.notifyItemRangeRemoved((previousTotal - arrayList.size()), arrayList.size());
-        mOffset = mOffset - arrayList.size();
-        mPageList.remove(mPageList.size() - 1);
+
+        int lastVisibleItemPosition = getLastItemPosition();
+
+        if (mArrayList.size() > (mVisibleThreshold * 3) && ((mArrayList.size() - mPageList.get(mPageList.size() - 1).size() - 1) > lastVisibleItemPosition)) {
+            ArrayList<T> arrayList = mPageList.get(mPageList.size() - 1);
+            int previousTotal = mArrayList.size();
+            mArrayList.removeAll(arrayList);
+            mAdapter.notifyItemRangeRemoved((previousTotal - arrayList.size()), arrayList.size());
+            mOffset = mOffset - arrayList.size();
+            mPageList.remove(mPageList.size() - 1);
+        }
     }
 
     public void addPageBellow(T[] items) {
@@ -194,15 +198,12 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
     }
 
     public void addPageBellow(ArrayList<T> items) {
-        if(mPageOperator == null) {
-            Log.d("addPage","null");
-        }
         mPageList.add(items);
         int lastPosition = mArrayList.size() - 1;
         mArrayList.addAll(items);
         mAdapter.notifyItemRangeInserted(lastPosition, items.size());
         mOffset = mOffset + items.size();
-
+        removeFirstPage();
         mLoadingBellow = false;
     }
 
@@ -217,9 +218,10 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
         mPageList.add(0, items);
         mArrayList.addAll(0, items);
         mAdapter.notifyItemRangeInserted(0, items.size());
+        mPreviousOffset -= items.size();
+        removeLastPage();
         mLoadingAbove = false;
     }
-
 
     public void setAdapter(RecyclerView.Adapter adapter) {
         this.mAdapter = adapter;
@@ -231,16 +233,13 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
 
     public void addPageOperator(PageOperator pageOperator) {
         mPageOperator = pageOperator;
-        if(mPageOperator!=null){
-            Log.d("base","nope");
-        }
-        mPageOperator.loadDataBellow(0, 30, null);
+        mPageOperator.loadDataBellow(0, 20, null);
     }
 
-    public static interface PageOperator {
-        public void loadDataBellow(long offset, long limit, RecyclerView view);
+    public interface PageOperator {
 
-        public void loadDataAbove(long offset, long limit, RecyclerView view);
+        void loadDataBellow(long offset, long limit, RecyclerView view);
 
+        void loadDataAbove(long offset, long limit, RecyclerView view);
     }
 }

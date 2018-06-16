@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +20,6 @@ import com.trak.sam.collegelog.model.School;
 import com.trak.sam.collegelog.service.SchoolService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * A fragment representing a list of Items.
@@ -38,7 +36,6 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     private LinearLayoutManager mLinearLayoutManager;
     private ArrayList<School> mSchoolArrayList;
     private BaseOnScrollListener.PageOperator mPageOperator;
-    private BaseOnScrollListener<School> mBaseOnScrollListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -50,8 +47,7 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
     public static SchoolListFragment newInstance() {
-        SchoolListFragment fragment = new SchoolListFragment();
-        return fragment;
+        return new SchoolListFragment();
     }
 
     @Override
@@ -97,31 +93,33 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
         super.onResume();
 
         mSchoolArrayList = new ArrayList<>();
-        mBaseOnScrollListener = new BaseOnScrollListener<School>(mLinearLayoutManager);
-        mPageOperator = new PageOperatorImpl();
+        BaseOnScrollListener<School> baseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
+        mPageOperator = new PageOperatorImpl(baseOnScrollListener);
 
         SchoolRecyclerViewAdapter schoolRecyclerViewAdapter = new SchoolRecyclerViewAdapter(mSchoolArrayList, mListener);
         mRecyclerView.setAdapter(schoolRecyclerViewAdapter);
-        mBaseOnScrollListener.addPageOperator(mPageOperator);
-        mBaseOnScrollListener.setAdapter(schoolRecyclerViewAdapter);
-        mBaseOnScrollListener.setArrayList(mSchoolArrayList);
-        mRecyclerView.addOnScrollListener(new BaseOnScrollListener(mLinearLayoutManager));
+        baseOnScrollListener.addPageOperator(mPageOperator);
+        baseOnScrollListener.setAdapter(schoolRecyclerViewAdapter);
+        baseOnScrollListener.setArrayList(mSchoolArrayList);
+        mRecyclerView.addOnScrollListener(baseOnScrollListener);
         mRecyclerView.setAdapter(schoolRecyclerViewAdapter);
     }
 
     private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {
 
+        private BaseOnScrollListener<School> mSchoolBaseOnScrollListener;
+        private PageOperatorImpl(BaseOnScrollListener<School> schoolBaseOnScrollListener) {
+            mSchoolBaseOnScrollListener = schoolBaseOnScrollListener;
+        }
+
         @Override
         public void loadDataBellow(long offset, long limit, RecyclerView view) {
-            Log.d("loadBellow-offset", String.valueOf(offset));
-            Log.d("loadBellow-limit", String.valueOf(limit));
-            SchoolService.getSchools(offset, limit, new SchoolCallbackHandler(true));
+            SchoolService.getSchools(offset, limit, new SchoolCallbackHandler(true, mSchoolBaseOnScrollListener));
         }
 
         @Override
         public void loadDataAbove(long offset, long limit, RecyclerView view) {
-            Log.d("loadAbove-offset", String.valueOf(offset));
-            Log.d("loadAbove-limit", String.valueOf(limit));
+            SchoolService.getSchools(offset, limit, new SchoolCallbackHandler(false, mSchoolBaseOnScrollListener));
         }
     }
 
@@ -139,10 +137,12 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
     private class SchoolCallbackHandler implements BaseHttpCallback<School> {
 
-        private final boolean mIsBellow;
+        private boolean mIsBellow;
+        private BaseOnScrollListener<School> mBaseOnScrollListener;
 
-        public SchoolCallbackHandler(boolean isBellow) {
+        private SchoolCallbackHandler(boolean isBellow, BaseOnScrollListener<School> baseOnScrollListener) {
             mIsBellow = isBellow;
+            mBaseOnScrollListener = baseOnScrollListener;
         }
 
         @Override
@@ -152,11 +152,10 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
         @Override
         public void onItemsReceived(School[] items) {
-            ArrayList<School> schoolArrayList = new ArrayList<>(Arrays.asList(items));
             if(mIsBellow){
-                mBaseOnScrollListener.addPageBellow(schoolArrayList);
+                mBaseOnScrollListener.addPageBellow(items);
             } else {
-                mBaseOnScrollListener.addPageAbove(schoolArrayList);
+                mBaseOnScrollListener.addPageAbove(items);
             }
         }
 
