@@ -9,7 +9,6 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.trak.sam.collegelog.MainActivity;
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.service.UserService;
 

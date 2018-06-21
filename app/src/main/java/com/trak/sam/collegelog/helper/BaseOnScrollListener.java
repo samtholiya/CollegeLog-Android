@@ -13,13 +13,6 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
     // before mLoading more.
     private int mVisibleThreshold = 5;
 
-    private int mArraySize = 0;
-    // The current offset index of data you have loaded
-    private int mCurrentPage = 0;
-
-    // The total number of items in the dataset after the last load
-    private int mPreviousTotalItemCount = 0;
-
     private long mOffset = 0;
     private long mPreviousOffset = 0;
 
@@ -129,13 +122,6 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
             temp = 0;
         }
         mPageOperator.loadDataAbove(temp, tempLimit, view);
-    }
-
-    // Call whenever performing new searches
-    public void resetState() {
-        this.mCurrentPage = this.mStartingPageIndex;
-        this.mPreviousTotalItemCount = 0;
-        // this.mLoading = true;
     }
 
     private void removeFirstPage() {

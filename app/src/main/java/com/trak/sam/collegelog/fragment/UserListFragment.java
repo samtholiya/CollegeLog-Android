@@ -85,6 +85,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
         super.onResume();
 
         mUserArrayList = new ArrayList<>();
+        mFragmentChangeListener.setAddButtonListener(this);
         BaseOnScrollListener<User> baseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
         mPageOperator = new PageOperatorImpl(baseOnScrollListener);
 
@@ -108,7 +109,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     @Override
     public void OnAddButtonClick(View view) {
         if (mFragmentChangeListener != null)
-            mFragmentChangeListener.replaceFragment(RegisterUserFragment.newInstance(), false);
+            mFragmentChangeListener.replaceFragment(RegisterUserFragment.newInstance());
     }
 
     private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {

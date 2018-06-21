@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
@@ -21,7 +20,6 @@ import com.trak.sam.collegelog.model.School;
 
 public class AdminActivity extends AppCompatActivity implements FragmentChangeListener, OnSchoolListItemClick {
 
-    private FrameLayout mTextMessage;
     private FloatingActionButton mAddButton;
     private OnAddButtonClick mOnAddButtonClickListner;
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -33,10 +31,10 @@ public class AdminActivity extends AppCompatActivity implements FragmentChangeLi
                 case R.id.navigation_home:
                     return true;
                 case R.id.navigation_users:
-                    replaceFragment(UserListFragment.newInstance(), true);
+                    replaceFragment(UserListFragment.newInstance());
                     return true;
                 case R.id.navigation_schools:
-                    replaceFragment(SchoolListFragment.newInstance(), true);
+                    replaceFragment(SchoolListFragment.newInstance());
                     return true;
             }
             return false;
@@ -51,7 +49,7 @@ public class AdminActivity extends AppCompatActivity implements FragmentChangeLi
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-        Fragment fragment = SchoolListFragment.newInstance();
+
         mAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -59,20 +57,13 @@ public class AdminActivity extends AppCompatActivity implements FragmentChangeLi
                     mOnAddButtonClickListner.OnAddButtonClick(view);
             }
         });
-        SchoolListFragment schoolListFragment = SchoolListFragment.newInstance();
-        addFragment(schoolListFragment, true);
 
+        SchoolListFragment schoolListFragment = SchoolListFragment.newInstance();
+        addFragment(schoolListFragment);
     }
 
-    public void addFragment(Fragment fragment, boolean showFab) {
-        if (showFab) {
-            mAddButton.show();
-            if (fragment instanceof OnAddButtonClick) {
-                mOnAddButtonClickListner = (OnAddButtonClick) fragment;
-            }
-        } else {
-            mAddButton.hide();
-        }
+    public void addFragment(Fragment fragment) {
+        mAddButton.hide();
         if (getSupportFragmentManager().findFragmentById(R.id.fragment) == null)
             getSupportFragmentManager()
                     .beginTransaction()
@@ -80,18 +71,11 @@ public class AdminActivity extends AppCompatActivity implements FragmentChangeLi
                     .commit();
     }
 
+
+
     @Override
-    public void replaceFragment(Fragment fragment, boolean showFab) {
-
-        if (showFab) {
-            mAddButton.show();
-            if (fragment instanceof OnAddButtonClick) {
-                mOnAddButtonClickListner = (OnAddButtonClick) fragment;
-            }
-        } else {
-            mAddButton.hide();
-        }
-
+    public void replaceFragment(Fragment fragment) {
+        mAddButton.hide();
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment, fragment, fragment.toString())
@@ -102,6 +86,17 @@ public class AdminActivity extends AppCompatActivity implements FragmentChangeLi
     @Override
     public void onClickedView(View view) {
 
+    }
+
+    @Override
+    public void setAddButtonListener(OnAddButtonClick onAddButtonClick) {
+        mOnAddButtonClickListner = onAddButtonClick;
+        mAddButton.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 
     @Override

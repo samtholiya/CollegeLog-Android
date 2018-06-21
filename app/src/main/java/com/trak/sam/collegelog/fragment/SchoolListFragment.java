@@ -78,6 +78,9 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
         if (context instanceof OnSchoolListItemClick) {
             mListener = (OnSchoolListItemClick) context;
         }
+        if(context instanceof FragmentChangeListener) {
+            mFragmentChangeListner = (FragmentChangeListener) context;
+        }
     }
 
     @Override
@@ -91,10 +94,11 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     public void onResume() {
         super.onResume();
 
+        mFragmentChangeListner.setAddButtonListener(this);
         mSchoolArrayList = new ArrayList<>();
         BaseOnScrollListener<School> baseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
-        mPageOperator = new PageOperatorImpl(baseOnScrollListener);
 
+        mPageOperator = new PageOperatorImpl(baseOnScrollListener);
         SchoolRecyclerViewAdapter schoolRecyclerViewAdapter = new SchoolRecyclerViewAdapter(mSchoolArrayList, mListener);
         mRecyclerView.setAdapter(schoolRecyclerViewAdapter);
         baseOnScrollListener.addPageOperator(mPageOperator);
@@ -131,6 +135,6 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
     @Override
     public void OnAddButtonClick(View view) {
-
+        mFragmentChangeListner.replaceFragment(RegisterSchoolFragment.newInstance());
     }
 }

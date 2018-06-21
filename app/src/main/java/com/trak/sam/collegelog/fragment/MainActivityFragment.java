@@ -52,7 +52,7 @@ public class MainActivityFragment extends Fragment implements BaseHttpCallback<U
         mRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mListener.replaceFragment(RegisterUserFragment.newInstance(), false);
+                mListener.replaceFragment(RegisterUserFragment.newInstance());
             }
         });
         return mView;

@@ -1,4 +1,4 @@
-package com.trak.sam.collegelog;
+package com.trak.sam.collegelog.activity;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -10,7 +10,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
+import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.fragment.MainActivityFragment;
 
 public class MainActivity extends AppCompatActivity implements FragmentChangeListener {
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
     }
 
     @Override
-    public void replaceFragment(Fragment fragment, boolean showFab) {
+    public void replaceFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment, fragment, fragment.toString())
@@ -71,6 +73,11 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
 
     @Override
     public void onClickedView(View view) {
+
+    }
+
+    @Override
+    public void setAddButtonListener(OnAddButtonClick onAddButtonClick) {
 
     }
 
