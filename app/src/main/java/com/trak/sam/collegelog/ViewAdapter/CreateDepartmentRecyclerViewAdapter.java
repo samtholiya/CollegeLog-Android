@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.callback.OnDeleteItemClicked;
@@ -40,7 +39,7 @@ public class CreateDepartmentRecyclerViewAdapter extends RecyclerView.Adapter<Cr
     public void onBindViewHolder(ViewHolder holder, final int position) {
         holder.mItem = mValues.get(position);
         holder.mIdView.addTextChangedListener(new TextWatcherHandler(position));
-        holder.mView.setOnClickListener(new OnClickHandler(position));
+        holder.mContentView.setOnClickListener(new OnClickHandler(position));
     }
 
     private class OnClickHandler implements View.OnClickListener {

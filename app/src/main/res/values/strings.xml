@@ -31,4 +31,5 @@
     <string name="name">Name</string>
     <string name="city">City</string>
     <string name="url">Url</string>
+    <string name="save">Save</string>
 </resources>

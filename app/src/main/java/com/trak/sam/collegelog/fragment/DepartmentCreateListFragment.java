@@ -52,7 +52,8 @@ public class DepartmentCreateListFragment extends Fragment implements OnAddButto
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_department_create_list, container, false);
-        mDepartments = new ArrayList<>();
+        if (mDepartments == null)
+            mDepartments = new ArrayList<>();
         mFragmentChangeListener.setAddButtonListener(this);
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -80,7 +81,9 @@ public class DepartmentCreateListFragment extends Fragment implements OnAddButto
 
     @Override
     public void OnAddButtonClick(View view) {
-
+        int pos = mDepartments.size();
+        mDepartments.add(new Department());
+        mCreateDepartmentRecyclerViewAdapter.notifyItemInserted(pos);
     }
 
     @Override
@@ -96,6 +99,6 @@ public class DepartmentCreateListFragment extends Fragment implements OnAddButto
 
     @Override
     public void setItemList(ArrayList<Department> arrayList) {
-
+        mDepartments = arrayList;
     }
 }
