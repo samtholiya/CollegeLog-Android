@@ -10,20 +10,25 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.trak.sam.collegelog.R;
+import com.trak.sam.collegelog.callback.CreateItemListFragment;
+import com.trak.sam.collegelog.callback.FragmentChangeListener;
+import com.trak.sam.collegelog.callback.OnAddButtonClick;
+import com.trak.sam.collegelog.model.Department;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link RegisterSchoolFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link RegisterSchoolFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RegisterSchoolFragment extends Fragment {
+public class RegisterSchoolFragment extends Fragment implements FragmentChangeListener {
 
-    private OnFragmentInteractionListener mListener;
     private View mView;
     private LinearLayout mContainer;
+    private FragmentChangeListener mFragmentChangeListener;
+    private LinearLayout mLinearLayout;
+    private CreateItemListFragment<Department> mCreateDepartmentFragment;
     public RegisterSchoolFragment() {
         // Required empty public constructor
     }
@@ -49,41 +54,42 @@ public class RegisterSchoolFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         mView = inflater.inflate(R.layout.fragment_register_school, container, false);
+        DepartmentCreateListFragment departmentCreateListFragment = DepartmentCreateListFragment.newInstance();
+        mCreateDepartmentFragment = departmentCreateListFragment;
+        getChildFragmentManager().beginTransaction()
+                .add(R.id.department_container, departmentCreateListFragment)
+                .commit();
 
         return mView;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        if (context instanceof FragmentChangeListener)
+            mFragmentChangeListener = (FragmentChangeListener) context;
 
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+    @Override
+    public void replaceFragment(Fragment fragment) {
+
     }
+
+    @Override
+    public void onClickedView(View view) {
+
+    }
+
+    @Override
+    public void setAddButtonListener(OnAddButtonClick onAddButtonClick) {
+        mFragmentChangeListener.setAddButtonListener(onAddButtonClick);
+    }
+
 }

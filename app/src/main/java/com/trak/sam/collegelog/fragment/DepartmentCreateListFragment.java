@@ -10,14 +10,25 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.trak.sam.collegelog.R;
+import com.trak.sam.collegelog.ViewAdapter.CreateDepartmentRecyclerViewAdapter;
+import com.trak.sam.collegelog.callback.CreateItemListFragment;
+import com.trak.sam.collegelog.callback.FragmentChangeListener;
+import com.trak.sam.collegelog.callback.OnAddButtonClick;
+import com.trak.sam.collegelog.callback.OnDeleteItemClicked;
+import com.trak.sam.collegelog.model.Department;
+
+import java.util.ArrayList;
 
 /**
  * A fragment representing a list of Items.
  * <p/>
  * interface.
  */
-public class DepartmentCreateListFragment extends Fragment {
+public class DepartmentCreateListFragment extends Fragment implements OnAddButtonClick, OnDeleteItemClicked, CreateItemListFragment<Department> {
 
+    private FragmentChangeListener mFragmentChangeListener;
+    private ArrayList<Department> mDepartments;
+    private CreateDepartmentRecyclerViewAdapter mCreateDepartmentRecyclerViewAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -28,28 +39,28 @@ public class DepartmentCreateListFragment extends Fragment {
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static DepartmentCreateListFragment newInstance(int columnCount) {
-        DepartmentCreateListFragment fragment = new DepartmentCreateListFragment();
-        return fragment;
+    public static DepartmentCreateListFragment newInstance() {
+        return new DepartmentCreateListFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_department_create_list, container, false);
-
+        mDepartments = new ArrayList<>();
+        mFragmentChangeListener.setAddButtonListener(this);
         // Set the adapter
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            //recyclerView.setAdapter(new CreateDepartmentRecyclerViewAdapter(DummyContent.ITEMS, mListener));
+            mCreateDepartmentRecyclerViewAdapter = new CreateDepartmentRecyclerViewAdapter(mDepartments, this);
+            recyclerView.setAdapter(mCreateDepartmentRecyclerViewAdapter);
         }
         return view;
     }
@@ -58,10 +69,33 @@ public class DepartmentCreateListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        if (context instanceof FragmentChangeListener)
+            mFragmentChangeListener = (FragmentChangeListener) context;
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
+    }
+
+    @Override
+    public void OnAddButtonClick(View view) {
+
+    }
+
+    @Override
+    public void onDeleteItemClick(View view, int position) {
+        mDepartments.remove(position);
+        mCreateDepartmentRecyclerViewAdapter.notifyItemRemoved(position);
+    }
+
+    @Override
+    public ArrayList<Department> getItemList() {
+        return mDepartments;
+    }
+
+    @Override
+    public void setItemList(ArrayList<Department> arrayList) {
+
     }
 }
