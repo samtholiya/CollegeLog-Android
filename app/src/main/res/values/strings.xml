@@ -32,4 +32,5 @@
     <string name="city">City</string>
     <string name="url">Url</string>
     <string name="save">Save</string>
+    <string name="ok">Ok</string>
 </resources>

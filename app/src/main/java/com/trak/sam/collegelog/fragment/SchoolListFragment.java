@@ -3,6 +3,7 @@ package com.trak.sam.collegelog.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import com.trak.sam.collegelog.ViewAdapter.SchoolRecyclerViewAdapter;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.callback.OnSchoolListItemClick;
+import com.trak.sam.collegelog.fragment.dialog.DisplaySchoolDialog;
 import com.trak.sam.collegelog.helper.BaseOnScrollListener;
 import com.trak.sam.collegelog.helper.HttpPageLoaderHelper;
 import com.trak.sam.collegelog.model.School;
@@ -75,10 +77,8 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnSchoolListItemClick) {
-            mListener = (OnSchoolListItemClick) context;
-        }
-        if(context instanceof FragmentChangeListener) {
+        mListener = this;
+        if (context instanceof FragmentChangeListener) {
             mFragmentChangeListner = (FragmentChangeListener) context;
         }
     }
@@ -130,7 +130,15 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
     @Override
     public void onListItemClick(School item) {
-
+        FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+        Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        DisplaySchoolDialog dialogFragment = new DisplaySchoolDialog();
+        dialogFragment.school = item;
+        dialogFragment.show(ft, "dialog");
     }
 
     @Override

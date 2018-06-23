@@ -3,6 +3,7 @@ package com.trak.sam.collegelog.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import com.trak.sam.collegelog.ViewAdapter.UserRecyclerViewAdapter;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.callback.OnAddButtonClick;
 import com.trak.sam.collegelog.callback.OnUserListItemClick;
+import com.trak.sam.collegelog.fragment.dialog.DisplayUserDialog;
 import com.trak.sam.collegelog.helper.BaseOnScrollListener;
 import com.trak.sam.collegelog.helper.HttpPageLoaderHelper;
 import com.trak.sam.collegelog.model.User;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
  * <p/>
  * interface.
  */
-public class UserListFragment extends Fragment implements OnAddButtonClick {
+public class UserListFragment extends Fragment implements OnAddButtonClick, OnUserListItemClick {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -60,7 +62,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_user_list, container, false);
-
+        mListener = this;
         // Set the adapter
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
@@ -74,8 +76,10 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        /*
         if (context instanceof OnUserListItemClick)
             mListener = (OnUserListItemClick) context;
+        */
         if (context instanceof FragmentChangeListener)
             mFragmentChangeListener = (FragmentChangeListener) context;
     }
@@ -110,6 +114,19 @@ public class UserListFragment extends Fragment implements OnAddButtonClick {
     public void OnAddButtonClick(View view) {
         if (mFragmentChangeListener != null)
             mFragmentChangeListener.replaceFragment(RegisterUserFragment.newInstance());
+    }
+
+    @Override
+    public void onListItemClick(User item) {
+        FragmentTransaction ft = getChildFragmentManager().beginTransaction();
+        Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        DisplayUserDialog dialogFragment = new DisplayUserDialog();
+        dialogFragment.user = item;
+        dialogFragment.show(ft, "dialog");
     }
 
     private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {

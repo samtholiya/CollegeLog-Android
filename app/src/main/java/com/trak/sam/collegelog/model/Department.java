@@ -13,4 +13,5 @@ package com.trak.sam.collegelog.model;
 public class Department {
     public long id;
     public String name;
+    public School school;
 }
