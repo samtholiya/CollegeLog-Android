@@ -21,6 +21,7 @@ import com.trak.sam.collegelog.model.School;
 import com.trak.sam.collegelog.service.SchoolService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -41,6 +42,8 @@ public class RegisterSchoolFragment extends Fragment implements FragmentChangeLi
     private Button mSave;
     private ArrayList<Department> mDepartments;
     private CreateItemListFragment<Department> mCreateDepartmentFragment;
+    private School school;
+
     public RegisterSchoolFragment() {
         // Required empty public constructor
     }
@@ -54,6 +57,12 @@ public class RegisterSchoolFragment extends Fragment implements FragmentChangeLi
     // TODO: Rename and change types and number of parameters
     public static RegisterSchoolFragment newInstance() {
         return new RegisterSchoolFragment();
+    }
+
+    public static Fragment newInstance(School item) {
+        RegisterSchoolFragment registerSchoolFragment = new RegisterSchoolFragment();
+        registerSchoolFragment.school = item;
+        return registerSchoolFragment;
     }
 
     @Override
@@ -76,7 +85,15 @@ public class RegisterSchoolFragment extends Fragment implements FragmentChangeLi
 
         mCreateDepartmentFragment = departmentCreateListFragment;
         mDepartments = new ArrayList<>();
-        mDepartments.add(new Department());
+        if (school != null) {
+            mName.setText(school.name);
+            mCity.setText(school.city);
+            mAddress.setText(school.address);
+            mUrl.setText(school.url);
+            mDepartments = new ArrayList<>(Arrays.asList(school.departments));
+        } else {
+            mDepartments.add(new Department());
+        }
         mCreateDepartmentFragment.setItemList(mDepartments);
         getChildFragmentManager().beginTransaction()
                 .add(R.id.department_container, departmentCreateListFragment)
@@ -91,7 +108,7 @@ public class RegisterSchoolFragment extends Fragment implements FragmentChangeLi
                 school.address = mAddress.getText().toString();
                 school.url = mUrl.getText().toString();
                 school.departments = mDepartments.toArray(new Department[1]);
-                SchoolService.saveSchool(school,new SchoolResponse());
+                SchoolService.saveSchool(school, new SchoolResponse());
             }
         });
         return mView;
@@ -141,7 +158,7 @@ public class RegisterSchoolFragment extends Fragment implements FragmentChangeLi
 
     @Override
     public void setAddButtonListener(OnAddButtonClick onAddButtonClick) {
-        Log.d("sam","RegisterSchoolFrag");
+        Log.d("sam", "RegisterSchoolFrag");
         mFragmentChangeListener.setAddButtonListener(onAddButtonClick);
     }
 

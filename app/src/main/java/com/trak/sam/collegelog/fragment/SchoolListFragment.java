@@ -124,14 +124,14 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
     @Override
     public void swipedRight(int position) {
-
+        mFragmentChangeListner.replaceFragment(RegisterSchoolFragment.newInstance(mSchoolArrayList.get(position)));
     }
 
     private class SchoolDeleteResult implements BaseHttpCallback<DeleteResult> {
 
         private int mPosition;
 
-        public SchoolDeleteResult(int position) {
+        private SchoolDeleteResult(int position) {
             mPosition = position;
         }
 

@@ -38,6 +38,7 @@ public class CreateDepartmentRecyclerViewAdapter extends RecyclerView.Adapter<Cr
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
         holder.mItem = mValues.get(position);
+        holder.mIdView.setText(mValues.get(position).name);
         holder.mIdView.addTextChangedListener(new TextWatcherHandler(position));
         holder.mContentView.setOnClickListener(new OnClickHandler(position));
     }
@@ -90,12 +91,12 @@ public class CreateDepartmentRecyclerViewAdapter extends RecyclerView.Adapter<Cr
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final View mView;
-        public final EditText mIdView;
-        public final Button mContentView;
-        public Department mItem;
+        private final View mView;
+        private final EditText mIdView;
+        private final Button mContentView;
+        private Department mItem;
 
-        public ViewHolder(View view) {
+        private ViewHolder(View view) {
             super(view);
             mView = view;
             mIdView =  view.findViewById(R.id.editText);

@@ -70,6 +70,7 @@ public class RegisterUserFragment extends Fragment {
     private FragmentChangeListener mListener;
     private ArrayList<Role> roleArrayList;
     private ArrayList<School> mSchoolArrayList;
+    private User mUser;
 
     public RegisterUserFragment() {
         // Required empty public constructor
@@ -89,12 +90,15 @@ public class RegisterUserFragment extends Fragment {
         return fragment;
     }
 
+    public static RegisterUserFragment newInstance(User user) {
+        RegisterUserFragment fragment = new RegisterUserFragment();
+        fragment.setUser(user);
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-
-        }
     }
 
 
@@ -120,17 +124,24 @@ public class RegisterUserFragment extends Fragment {
         schools.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                List<String> spinnerArray = new ArrayList<String>();
+                List<String> spinnerArray = new ArrayList<>();
                 departmentArrayList = new ArrayList<>();
+                int position = 0;
+                int index = 0;
                 for (Department department : mSchoolArrayList.get(i).departments) {
                     spinnerArray.add(department.name);
                     departmentArrayList.add(department);
+                    if (mUser != null && department.name.equals(mUser.departments[0].name)) {
+                        position = index;
+                    }
+                    index++;
                 }
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
                         getContext(), android.R.layout.simple_spinner_item, spinnerArray);
 
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 department.setAdapter(adapter);
+                department.setSelection(position);
             }
 
             @Override
@@ -138,6 +149,7 @@ public class RegisterUserFragment extends Fragment {
 
             }
         });
+
         date = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear,
@@ -146,10 +158,10 @@ public class RegisterUserFragment extends Fragment {
                 calendar.set(Calendar.YEAR, year);
                 calendar.set(Calendar.MONTH, monthOfYear);
                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                List<String> spinnerArray = new ArrayList<String>();
+                List<String> spinnerArray = new ArrayList<>();
 
                 spinnerArray.add(calendar.getTime().toString());
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
                         getContext(), android.R.layout.simple_spinner_item, spinnerArray);
 
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -170,25 +182,45 @@ public class RegisterUserFragment extends Fragment {
             }
         });
         register = mView.findViewById(R.id.register);
+        if (mUser != null) {
+            username.setText(mUser.userName);
+            password.setText(mUser.password);
+            confirmPassword.setText(mUser.password);
+            firstName.setText(mUser.firstName);
+            lastName.setText(mUser.lastName);
+            address.setText(mUser.address);
+            List<String> spinnerArray = new ArrayList<>();
+            spinnerArray.add(mUser.dateOfBirth.toString());
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                    getContext(), android.R.layout.simple_spinner_item, spinnerArray);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            dateOfBirth.setAdapter(adapter);
+            email.setText(mUser.email);
+            phoneNumber.setText(mUser.mobile);
+        }
+
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (password.getText().toString().equals(confirmPassword.getText().toString())) {
-                    User user = new User();
-                    user.userName = username.getText().toString();
-                    user.password = password.getText().toString();
-                    user.firstName = firstName.getText().toString();
-                    user.lastName = lastName.getText().toString();
-                    user.address = address.getText().toString();
-                    user.dateOfBirth = calendar.getTime();
-                    user.email = email.getText().toString();
-                    user.mobile = phoneNumber.getText().toString();
-                    Department[] departments = new Department[1];
-                    departments[0] = departmentArrayList.get(department.getSelectedItemPosition());
-                    user.role = roleArrayList.get(role.getSelectedItemPosition());
-
-                    user.departments = departments;
-                    UserService.register(user, new BaseHttpCallback<User>() {
+                    if (mUser == null)
+                        mUser = new User();
+                    mUser.userName = username.getText().toString();
+                    mUser.password = password.getText().toString();
+                    mUser.firstName = firstName.getText().toString();
+                    mUser.lastName = lastName.getText().toString();
+                    mUser.address = address.getText().toString();
+                    mUser.dateOfBirth = calendar.getTime();
+                    mUser.email = email.getText().toString();
+                    mUser.mobile = phoneNumber.getText().toString();
+                    if (departmentArrayList.size() > 0) {
+                        Department[] departments = new Department[1];
+                        departments[0] = departmentArrayList.get(department.getSelectedItemPosition());
+                        mUser.departments = departments;
+                    }
+                    mUser.role = roleArrayList.get(role.getSelectedItemPosition());
+                    mUser.isActive = true;
+                    UserService.register(mUser, new BaseHttpCallback<User>() {
                         @Override
                         public void onItemReceived(User item) {
                             getActivity().onBackPressed();
@@ -201,7 +233,7 @@ public class RegisterUserFragment extends Fragment {
 
                         @Override
                         public void onFailed(Exception e) {
-                            Toast.makeText(getActivity(),"Register user failed",Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(), "Register user failed", Toast.LENGTH_LONG).show();
                         }
                     });
                 } else {
@@ -232,6 +264,10 @@ public class RegisterUserFragment extends Fragment {
         RoleService.getRoles(new RoleCallbackHandler());
     }
 
+    public void setUser(User user) {
+        this.mUser = user;
+    }
+
     private class RoleCallbackHandler implements BaseHttpCallback<Role> {
 
 
@@ -242,17 +278,24 @@ public class RegisterUserFragment extends Fragment {
 
         @Override
         public void onItemsReceived(Role[] items) {
-            List<String> spinnerArray = new ArrayList<String>();
-            roleArrayList = new ArrayList<Role>();
+            List<String> spinnerArray = new ArrayList<>();
+            roleArrayList = new ArrayList<>();
+            int position = 0;
+            int index = 0;
             for (Role role : items) {
                 spinnerArray.add(role.name);
                 roleArrayList.add(role);
+                if (mUser != null && role.name.equals(mUser.role.name)) {
+                    position = index;
+                }
+                index++;
             }
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     getContext(), android.R.layout.simple_spinner_item, spinnerArray);
 
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             role.setAdapter(adapter);
+            role.setSelection(position);
         }
 
         @Override
@@ -270,17 +313,29 @@ public class RegisterUserFragment extends Fragment {
 
         @Override
         public void onItemsReceived(School[] items) {
-            List<String> spinnerArray = new ArrayList<String>();
-            mSchoolArrayList = new ArrayList<School>();
+            List<String> spinnerArray = new ArrayList<>();
+            mSchoolArrayList = new ArrayList<>();
+            int position = 0;
+            int index = 0;
             for (School school : items) {
                 spinnerArray.add(school.name);
                 mSchoolArrayList.add(school);
+
+                if (mUser != null && school.departments != null) {
+                    for (Department department : school.departments) {
+                        if (department.id == (mUser.departments[0].id))
+                            position = index;
+                    }
+                }
+                index++;
             }
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     getContext(), android.R.layout.simple_spinner_item, spinnerArray);
 
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
             schools.setAdapter(adapter);
+            schools.setSelection(position);
         }
 
         @Override
@@ -299,13 +354,13 @@ public class RegisterUserFragment extends Fragment {
         @Override
         public void onDepartmentsReceived(Department[] departments) {
 
-            List<String> spinnerArray = new ArrayList<String>();
+            List<String> spinnerArray = new ArrayList<>();
             departmentArrayList = new ArrayList<>();
             for (Department department : departments) {
                 spinnerArray.add(department.name);
                 departmentArrayList.add(department);
             }
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     getContext(), android.R.layout.simple_spinner_item, spinnerArray);
 
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

@@ -145,7 +145,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick, OnUs
 
         private int mPosition;
 
-        public UserDeleteResult(int position) {
+        private UserDeleteResult(int position) {
             mPosition = position;
         }
 
@@ -167,7 +167,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick, OnUs
 
     @Override
     public void swipedRight(int position) {
-        //mFragmentChangeListener.replaceFragment();
+        mFragmentChangeListener.replaceFragment(RegisterUserFragment.newInstance(mUserArrayList.get(position)));
     }
 
     private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {
