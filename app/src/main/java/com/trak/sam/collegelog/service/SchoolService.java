@@ -8,6 +8,7 @@ import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.config.Config;
 import com.trak.sam.collegelog.helper.BaseJsonResponseHandler;
 import com.trak.sam.collegelog.helper.UtilHelper;
+import com.trak.sam.collegelog.model.DeleteResult;
 import com.trak.sam.collegelog.model.School;
 import com.trak.sam.collegelog.model.User;
 
@@ -32,7 +33,7 @@ public class SchoolService {
         User user = UserService.getCurrentUser();
         client.setBasicAuth(user.userName, user.password);
         BaseJsonResponseHandler<School> httpCallback = new BaseJsonResponseHandler<School>(callback, School.class, School[].class);
-        client.get(UtilHelper.getAbsoluteUrl(Config.SCHOOL_ENDPOINT), httpCallback);
+        client.get(UtilHelper.getAbsoluteUrl(Config.SCHOOL_ENDPOINT + "/" + Config.LIST_ENDPOINT), httpCallback);
     }
 
     public static void saveSchool(School school, BaseHttpCallback<School> callback) {
@@ -47,6 +48,13 @@ public class SchoolService {
             e.printStackTrace();
         }
 
+    }
+
+    public static void deleteSchool(long id, BaseHttpCallback<DeleteResult> callback) {
+        User tempUser = UserService.getCurrentUser();
+        client.setBasicAuth(tempUser.userName, tempUser.password);
+        BaseJsonResponseHandler<DeleteResult> jsonResponseHandler = new BaseJsonResponseHandler<>(callback, DeleteResult.class, DeleteResult[].class);
+        client.delete(UtilHelper.getAbsoluteUrl(Config.SCHOOL_ENDPOINT + "/" + String.valueOf(id)), jsonResponseHandler);
     }
 
     public static void getSchools(long offset, long limit, BaseHttpCallback<School> callback) {

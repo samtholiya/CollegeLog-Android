@@ -8,20 +8,20 @@ import android.widget.TextView;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.callback.BaseItemClick;
+import com.trak.sam.collegelog.helper.BaseViewAdapter;
 import com.trak.sam.collegelog.model.School;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * TODO: Replace the implementation with code for your data type.
  */
-public class SchoolRecyclerViewAdapter extends RecyclerView.Adapter<SchoolRecyclerViewAdapter.ViewHolder> {
+public class SchoolRecyclerViewAdapter extends BaseViewAdapter<SchoolRecyclerViewAdapter.ViewHolder, School> {
 
-    private final List<School> mValues;
     private final BaseItemClick<School> mListener;
 
-    public SchoolRecyclerViewAdapter(List<School> items, BaseItemClick<School> listener) {
-        mValues = items;
+    public SchoolRecyclerViewAdapter(ArrayList<School> items, BaseItemClick<School> listener) {
+        super(items);
         mListener = listener;
     }
 
@@ -49,11 +49,6 @@ public class SchoolRecyclerViewAdapter extends RecyclerView.Adapter<SchoolRecycl
         });
     }
 
-    @Override
-    public int getItemCount() {
-        return mValues.size();
-    }
-
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
         public final TextView mIdView;
@@ -64,7 +59,6 @@ public class SchoolRecyclerViewAdapter extends RecyclerView.Adapter<SchoolRecycl
             super(view);
             mView = view;
             mIdView = (TextView) view.findViewById(R.id.item_number);
-            //mContentView = (TextView) view.findViewById(R.id.content);
         }
 
         @Override

@@ -19,4 +19,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/list_item_margin"
         android:textAppearance="?attr/textAppearanceListItem" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/separator"/>
 </LinearLayout>

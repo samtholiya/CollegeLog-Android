@@ -6,4 +6,5 @@
     <dimen name="text_margin">16dp</dimen>
     <dimen name="list_item_pad">5dp</dimen>
     <dimen name="list_item_margin">5dp</dimen>
+    <dimen name="swipe_to_delete_margin">12dp</dimen>
 </resources>

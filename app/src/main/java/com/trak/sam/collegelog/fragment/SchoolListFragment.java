@@ -6,18 +6,23 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.ViewAdapter.SchoolRecyclerViewAdapter;
+import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.callback.OnAddButtonClick;
+import com.trak.sam.collegelog.callback.OnItemSwiped;
 import com.trak.sam.collegelog.callback.OnSchoolListItemClick;
 import com.trak.sam.collegelog.fragment.dialog.DisplaySchoolDialog;
 import com.trak.sam.collegelog.helper.BaseOnScrollListener;
 import com.trak.sam.collegelog.helper.HttpPageLoaderHelper;
+import com.trak.sam.collegelog.helper.SwipeToEditDeleteHelper;
+import com.trak.sam.collegelog.model.DeleteResult;
 import com.trak.sam.collegelog.model.School;
 import com.trak.sam.collegelog.service.SchoolService;
 
@@ -28,7 +33,7 @@ import java.util.ArrayList;
  * <p/>
  * interface.
  */
-public class SchoolListFragment extends Fragment implements OnSchoolListItemClick, OnAddButtonClick {
+public class SchoolListFragment extends Fragment implements OnSchoolListItemClick, OnAddButtonClick, OnItemSwiped {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -38,6 +43,7 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     private LinearLayoutManager mLinearLayoutManager;
     private ArrayList<School> mSchoolArrayList;
     private BaseOnScrollListener.PageOperator mPageOperator;
+    private SchoolRecyclerViewAdapter mSchoolRecyclerViewAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -99,14 +105,52 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
         BaseOnScrollListener<School> baseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
 
         mPageOperator = new PageOperatorImpl(baseOnScrollListener);
-        SchoolRecyclerViewAdapter schoolRecyclerViewAdapter = new SchoolRecyclerViewAdapter(mSchoolArrayList, mListener);
-        mRecyclerView.setAdapter(schoolRecyclerViewAdapter);
+        mSchoolRecyclerViewAdapter = new SchoolRecyclerViewAdapter(mSchoolArrayList, mListener);
+        mRecyclerView.setAdapter(mSchoolRecyclerViewAdapter);
         baseOnScrollListener.addPageOperator(mPageOperator);
-        baseOnScrollListener.setAdapter(schoolRecyclerViewAdapter);
+        baseOnScrollListener.setAdapter(mSchoolRecyclerViewAdapter);
         baseOnScrollListener.setArrayList(mSchoolArrayList);
         mRecyclerView.addOnScrollListener(baseOnScrollListener);
-        mRecyclerView.setAdapter(schoolRecyclerViewAdapter);
+        mRecyclerView.setAdapter(mSchoolRecyclerViewAdapter);
+        ItemTouchHelper instituteSwipeHelper = new ItemTouchHelper(new SwipeToEditDeleteHelper(getContext(), this));
+        instituteSwipeHelper.attachToRecyclerView(mRecyclerView);
+
     }
+
+    @Override
+    public void swipedLeft(int position) {
+        SchoolService.deleteSchool(mSchoolArrayList.get(position).id, new SchoolDeleteResult(position));
+    }
+
+    @Override
+    public void swipedRight(int position) {
+
+    }
+
+    private class SchoolDeleteResult implements BaseHttpCallback<DeleteResult> {
+
+        private int mPosition;
+
+        public SchoolDeleteResult(int position) {
+            mPosition = position;
+        }
+
+        @Override
+        public void onItemReceived(DeleteResult item) {
+            mSchoolRecyclerViewAdapter.removeItem(mPosition);
+        }
+
+        @Override
+        public void onItemsReceived(DeleteResult[] items) {
+
+        }
+
+        @Override
+        public void onFailed(Exception e) {
+
+        }
+    }
+
 
     private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {
 

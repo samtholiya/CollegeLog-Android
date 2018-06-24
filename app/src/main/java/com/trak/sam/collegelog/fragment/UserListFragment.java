@@ -6,18 +6,24 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.ViewAdapter.UserRecyclerViewAdapter;
+import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.callback.FragmentChangeListener;
 import com.trak.sam.collegelog.callback.OnAddButtonClick;
+import com.trak.sam.collegelog.callback.OnItemSwiped;
 import com.trak.sam.collegelog.callback.OnUserListItemClick;
 import com.trak.sam.collegelog.fragment.dialog.DisplayUserDialog;
 import com.trak.sam.collegelog.helper.BaseOnScrollListener;
+import com.trak.sam.collegelog.helper.BaseViewAdapter;
 import com.trak.sam.collegelog.helper.HttpPageLoaderHelper;
+import com.trak.sam.collegelog.helper.SwipeToEditDeleteHelper;
+import com.trak.sam.collegelog.model.DeleteResult;
 import com.trak.sam.collegelog.model.User;
 import com.trak.sam.collegelog.service.UserService;
 
@@ -28,7 +34,7 @@ import java.util.ArrayList;
  * <p/>
  * interface.
  */
-public class UserListFragment extends Fragment implements OnAddButtonClick, OnUserListItemClick {
+public class UserListFragment extends Fragment implements OnAddButtonClick, OnUserListItemClick, OnItemSwiped {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -39,6 +45,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick, OnUs
     private LinearLayoutManager mLinearLayoutManager;
     private ArrayList<User> mUserArrayList;
     private BaseOnScrollListener.PageOperator mPageOperator;
+    private BaseViewAdapter<UserRecyclerViewAdapter.ViewHolder, User> mUserRecyclerViewAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -93,15 +100,15 @@ public class UserListFragment extends Fragment implements OnAddButtonClick, OnUs
         BaseOnScrollListener<User> baseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
         mPageOperator = new PageOperatorImpl(baseOnScrollListener);
 
-        UserRecyclerViewAdapter userRecyclerViewAdapter = new UserRecyclerViewAdapter(mUserArrayList, mListener);
-        mRecyclerView.setAdapter(userRecyclerViewAdapter);
+        mUserRecyclerViewAdapter = new UserRecyclerViewAdapter(mUserArrayList, mListener);
+        mRecyclerView.setAdapter(mUserRecyclerViewAdapter);
         baseOnScrollListener.addPageOperator(mPageOperator);
-        baseOnScrollListener.setAdapter(userRecyclerViewAdapter);
+        baseOnScrollListener.setAdapter(mUserRecyclerViewAdapter);
         baseOnScrollListener.setArrayList(mUserArrayList);
-
         mRecyclerView.addOnScrollListener(baseOnScrollListener);
-        mRecyclerView.setAdapter(userRecyclerViewAdapter);
-
+        mRecyclerView.setAdapter(mUserRecyclerViewAdapter);
+        ItemTouchHelper instituteSwipeHelper = new ItemTouchHelper(new SwipeToEditDeleteHelper(getContext(), this));
+        instituteSwipeHelper.attachToRecyclerView(mRecyclerView);
     }
 
     @Override
@@ -127,6 +134,40 @@ public class UserListFragment extends Fragment implements OnAddButtonClick, OnUs
         DisplayUserDialog dialogFragment = new DisplayUserDialog();
         dialogFragment.user = item;
         dialogFragment.show(ft, "dialog");
+    }
+
+    @Override
+    public void swipedLeft(int position) {
+        UserService.deleteUserWithId(mUserArrayList.get(position).id, new UserDeleteResult(position));
+    }
+
+    private class UserDeleteResult implements BaseHttpCallback<DeleteResult> {
+
+        private int mPosition;
+
+        public UserDeleteResult(int position) {
+            mPosition = position;
+        }
+
+        @Override
+        public void onItemReceived(DeleteResult item) {
+            mUserRecyclerViewAdapter.removeItem(mPosition);
+        }
+
+        @Override
+        public void onItemsReceived(DeleteResult[] items) {
+
+        }
+
+        @Override
+        public void onFailed(Exception e) {
+
+        }
+    }
+
+    @Override
+    public void swipedRight(int position) {
+        //mFragmentChangeListener.replaceFragment();
     }
 
     private class PageOperatorImpl implements BaseOnScrollListener.PageOperator {

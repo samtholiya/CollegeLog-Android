@@ -9,6 +9,7 @@ import com.trak.sam.collegelog.callback.BaseHttpCallback;
 import com.trak.sam.collegelog.config.Config;
 import com.trak.sam.collegelog.helper.BaseJsonResponseHandler;
 import com.trak.sam.collegelog.helper.UtilHelper;
+import com.trak.sam.collegelog.model.DeleteResult;
 import com.trak.sam.collegelog.model.Role;
 import com.trak.sam.collegelog.model.User;
 
@@ -33,6 +34,14 @@ public class UserService {
         BaseJsonResponseHandler<User> jsonResponseHandler = new BaseJsonResponseHandler<>(httpResponseHandler, User.class, User[].class);
         client.get(UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT), jsonResponseHandler);
     }
+
+    public static void deleteUserWithId(long id, BaseHttpCallback<DeleteResult> callback) {
+        User tempUser = getCurrentUser();
+        client.setBasicAuth(tempUser.userName, tempUser.password);
+        BaseJsonResponseHandler<DeleteResult> jsonResponseHandler = new BaseJsonResponseHandler<>(callback, DeleteResult.class, DeleteResult[].class);
+        client.delete(UtilHelper.getAbsoluteUrl(Config.USER_ENDPOINT + "/" + String.valueOf(id)), jsonResponseHandler);
+    }
+
 
     public static void getUsersOfRole(String role, long offset, long limit, BaseHttpCallback<User> callback) {
         User tempUser = getCurrentUser();

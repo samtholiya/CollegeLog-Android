@@ -8,20 +8,20 @@ import android.widget.TextView;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.callback.BaseItemClick;
+import com.trak.sam.collegelog.helper.BaseViewAdapter;
 import com.trak.sam.collegelog.model.User;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * TODO: Replace the implementation with code for your data type.
  */
-public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerViewAdapter.ViewHolder> {
+public class UserRecyclerViewAdapter extends BaseViewAdapter<UserRecyclerViewAdapter.ViewHolder, User> {
 
-    private List<User> mValues;
     private final BaseItemClick<User> mListener;
 
-    public UserRecyclerViewAdapter(List<User> items, BaseItemClick<User> listener) {
-        mValues = items;
+    public UserRecyclerViewAdapter(ArrayList<User> items, BaseItemClick<User> listener) {
+        super(items);
         mListener = listener;
     }
 
@@ -48,11 +48,6 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                 }
             }
         });
-    }
-
-    @Override
-    public int getItemCount() {
-        return mValues.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatSpinner;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.trak.sam.collegelog.R;
 import com.trak.sam.collegelog.callback.BaseHttpCallback;
@@ -123,7 +123,7 @@ public class RegisterUserFragment extends Fragment {
                 List<String> spinnerArray = new ArrayList<String>();
                 departmentArrayList = new ArrayList<>();
                 for (Department department : mSchoolArrayList.get(i).departments) {
-                    spinnerArray.add(department.name + department);
+                    spinnerArray.add(department.name);
                     departmentArrayList.add(department);
                 }
                 ArrayAdapter<String> adapter = new ArrayAdapter<String>(
@@ -173,7 +173,6 @@ public class RegisterUserFragment extends Fragment {
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("sam", confirmPassword.getText().toString() + " Password is" + password.getText().toString());
                 if (password.getText().toString().equals(confirmPassword.getText().toString())) {
                     User user = new User();
                     user.userName = username.getText().toString();
@@ -192,7 +191,7 @@ public class RegisterUserFragment extends Fragment {
                     UserService.register(user, new BaseHttpCallback<User>() {
                         @Override
                         public void onItemReceived(User item) {
-
+                            getActivity().onBackPressed();
                         }
 
                         @Override
@@ -202,7 +201,7 @@ public class RegisterUserFragment extends Fragment {
 
                         @Override
                         public void onFailed(Exception e) {
-
+                            Toast.makeText(getActivity(),"Register user failed",Toast.LENGTH_LONG).show();
                         }
                     });
                 } else {
