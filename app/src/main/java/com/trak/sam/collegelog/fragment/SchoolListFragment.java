@@ -44,6 +44,7 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
     private ArrayList<School> mSchoolArrayList;
     private BaseOnScrollListener.PageOperator mPageOperator;
     private SchoolRecyclerViewAdapter mSchoolRecyclerViewAdapter;
+    private BaseOnScrollListener<School> mBaseOnScrollListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -102,15 +103,15 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
         mFragmentChangeListner.setAddButtonListener(this);
         mSchoolArrayList = new ArrayList<>();
-        BaseOnScrollListener<School> baseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
+        mBaseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
 
-        mPageOperator = new PageOperatorImpl(baseOnScrollListener);
+        mPageOperator = new PageOperatorImpl(mBaseOnScrollListener);
         mSchoolRecyclerViewAdapter = new SchoolRecyclerViewAdapter(mSchoolArrayList, mListener);
         mRecyclerView.setAdapter(mSchoolRecyclerViewAdapter);
-        baseOnScrollListener.addPageOperator(mPageOperator);
-        baseOnScrollListener.setAdapter(mSchoolRecyclerViewAdapter);
-        baseOnScrollListener.setArrayList(mSchoolArrayList);
-        mRecyclerView.addOnScrollListener(baseOnScrollListener);
+        mBaseOnScrollListener.addPageOperator(mPageOperator);
+        mBaseOnScrollListener.setAdapter(mSchoolRecyclerViewAdapter);
+        mBaseOnScrollListener.setArrayList(mSchoolArrayList);
+        mRecyclerView.addOnScrollListener(mBaseOnScrollListener);
         mRecyclerView.setAdapter(mSchoolRecyclerViewAdapter);
         ItemTouchHelper instituteSwipeHelper = new ItemTouchHelper(new SwipeToEditDeleteHelper(getContext(), this));
         instituteSwipeHelper.attachToRecyclerView(mRecyclerView);
@@ -137,7 +138,7 @@ public class SchoolListFragment extends Fragment implements OnSchoolListItemClic
 
         @Override
         public void onItemReceived(DeleteResult item) {
-            mSchoolRecyclerViewAdapter.removeItem(mPosition);
+            mBaseOnScrollListener.removeItem(mPosition);
         }
 
         @Override

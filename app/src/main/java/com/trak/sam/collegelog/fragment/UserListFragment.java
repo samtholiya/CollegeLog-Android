@@ -46,6 +46,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick, OnUs
     private ArrayList<User> mUserArrayList;
     private BaseOnScrollListener.PageOperator mPageOperator;
     private BaseViewAdapter<UserRecyclerViewAdapter.ViewHolder, User> mUserRecyclerViewAdapter;
+    private BaseOnScrollListener<User> mBaseOnScrollListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -97,15 +98,15 @@ public class UserListFragment extends Fragment implements OnAddButtonClick, OnUs
 
         mUserArrayList = new ArrayList<>();
         mFragmentChangeListener.setAddButtonListener(this);
-        BaseOnScrollListener<User> baseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
-        mPageOperator = new PageOperatorImpl(baseOnScrollListener);
+        mBaseOnScrollListener = new BaseOnScrollListener<>(mLinearLayoutManager);
+        mPageOperator = new PageOperatorImpl(mBaseOnScrollListener);
 
         mUserRecyclerViewAdapter = new UserRecyclerViewAdapter(mUserArrayList, mListener);
         mRecyclerView.setAdapter(mUserRecyclerViewAdapter);
-        baseOnScrollListener.addPageOperator(mPageOperator);
-        baseOnScrollListener.setAdapter(mUserRecyclerViewAdapter);
-        baseOnScrollListener.setArrayList(mUserArrayList);
-        mRecyclerView.addOnScrollListener(baseOnScrollListener);
+        mBaseOnScrollListener.addPageOperator(mPageOperator);
+        mBaseOnScrollListener.setAdapter(mUserRecyclerViewAdapter);
+        mBaseOnScrollListener.setArrayList(mUserArrayList);
+        mRecyclerView.addOnScrollListener(mBaseOnScrollListener);
         mRecyclerView.setAdapter(mUserRecyclerViewAdapter);
         ItemTouchHelper instituteSwipeHelper = new ItemTouchHelper(new SwipeToEditDeleteHelper(getContext(), this));
         instituteSwipeHelper.attachToRecyclerView(mRecyclerView);
@@ -151,7 +152,7 @@ public class UserListFragment extends Fragment implements OnAddButtonClick, OnUs
 
         @Override
         public void onItemReceived(DeleteResult item) {
-            mUserRecyclerViewAdapter.removeItem(mPosition);
+            mBaseOnScrollListener.removeItem(mPosition);
         }
 
         @Override

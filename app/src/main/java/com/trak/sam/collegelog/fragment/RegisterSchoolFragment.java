@@ -102,12 +102,13 @@ public class RegisterSchoolFragment extends Fragment implements FragmentChangeLi
         mSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                School school = new School();
+                if(school==null)
+                    school = new School();
                 school.name = mName.getText().toString();
                 school.city = mCity.getText().toString();
                 school.address = mAddress.getText().toString();
                 school.url = mUrl.getText().toString();
-                school.departments = mDepartments.toArray(new Department[1]);
+                school.departments = mDepartments.toArray(new Department[mDepartments.size()]);
                 SchoolService.saveSchool(school, new SchoolResponse());
             }
         });

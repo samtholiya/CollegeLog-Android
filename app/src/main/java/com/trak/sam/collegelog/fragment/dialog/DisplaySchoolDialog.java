@@ -32,7 +32,6 @@ public class DisplaySchoolDialog extends DialogFragment {
             textView.setText(department.name);
             linearLayout.addView(textView);
         }
-
         ((Button)view.findViewById(R.id.ok)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

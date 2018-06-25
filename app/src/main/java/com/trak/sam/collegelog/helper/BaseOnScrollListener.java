@@ -193,6 +193,11 @@ public class BaseOnScrollListener<T> extends RecyclerView.OnScrollListener {
         mLoadingBellow = false;
     }
 
+    public void removeItem(int position) {
+        mArrayList.remove(position);
+        mAdapter.notifyItemRemoved(position);
+        mOffset--;
+    }
 
     public void addPageAbove(T[] items) {
         ArrayList<T> arrayList = new ArrayList<>(Arrays.asList(items));
